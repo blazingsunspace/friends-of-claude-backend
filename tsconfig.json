@@ -1,26 +1,58 @@
 {
-  "compilerOptions": {
-    "target": "esnext",
-    "module": "commonjs",
-    "lib": [
-      "DOM",
-      "ES2023"
-    ],
-    "baseUrl": ".",
-    "outDir": "./build",
-    "rootDir": "src",
-    "strict": true,
-    "noImplicitAny": true,
-    "noUnusedLocals": false,
-    "noUnusedParameters": false,
-    "moduleResolution": "node",
-    "esModuleInterop": true,
-    "sourceMap": true,
-    "experimentalDecorators": true,
-    "emitDecoratorMetadata": true,
-    "forceConsistentCasingInFileNames": true,
-    "allowSyntheticDefaultImports": true,
-    "pretty": true,
-    "resolveJsonModule": true
-  }
+	"ts-node": {
+		"transpileOnly": true,
+		"require": [
+			"typescript-transform-paths/register"
+		],
+	},
+	"compilerOptions": {
+		"target": "es2015",
+		"module": "commonjs",
+		"lib": [
+			"DOM",
+			"ES2015"
+		],
+		"baseUrl": "./",
+		"outDir": "./build",
+		"rootDir": "./",
+		"strict": true,
+		"noImplicitAny": true,
+		"noUnusedLocals": false,
+		"noUnusedParameters": false,
+		"moduleResolution": "node",
+		"esModuleInterop": true,
+		"sourceMap": true,
+		"experimentalDecorators": true,
+		"emitDecoratorMetadata": true,
+		"forceConsistentCasingInFileNames": true,
+		"allowSyntheticDefaultImports": true,
+		"pretty": true,
+		"resolveJsonModule": true,
+		"plugins": [
+			{
+				"transform": "typescript-transform-path"
+			},
+			{
+				"transform": "typescript-transform-path",
+				"afterDeclarations": true
+			}
+		],
+		"paths": {
+			"@globals/*": [
+				"src/shared/globals/*"
+			],
+			"@services/*": [
+				"src/shared/services/*"
+			],
+			"@sockets/*": [
+				"src/shared/sockets/*"
+			],
+			"@workers/*": [
+				"src/shared/workers/*"
+			],
+			"@root/*": [
+				"src/*"
+			]
+		}
+	}
 }

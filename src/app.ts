@@ -1,10 +1,10 @@
 import express, { Express } from 'express'
 
-import { ChattyServer } from './setupServer'
+import { ChattyServer } from '@root/setupServer'
 
-import databaseConnection from './setupDatabase'
+import databaseConnection from '@root/setupDatabase'
 
-import { config } from './config'
+import { config } from '@root/config'
 
 class Application {
 	public initialize(): void {
@@ -20,6 +20,7 @@ class Application {
 
 	private loadConfig(): void {
 		config.validateConfig()
+		config.cloadinaryConfig()
 	}
 }
 
