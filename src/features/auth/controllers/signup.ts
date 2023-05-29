@@ -5,7 +5,7 @@ import { joiValidation } from '@globals/decorators/joi-validation.decorators'
 import { signupSchema } from '@auth/schemes/signup'
 import { IAuthDocument, ISignUpData } from '@auth/interfaces/auth.interface'
 import { authService } from '@services/db/auth.service'
-import { BadRequestError } from '@globals/helpers/error-handler'
+import { BadRequestError, NotAcceptableError } from '@globals/helpers/error-handler'
 import { Helpers } from '@globals/helpers/helpers'
 import { UploadApiErrorResponse, UploadApiResponse } from 'cloudinary'
 import { uploads } from '@globals/helpers/cloudinary-upload'
@@ -28,7 +28,7 @@ export class SignUp {
 
 		const checkIfUserExist: IAuthDocument = await authService.getUserByUsernameOrEmail(username, email)
 		if (checkIfUserExist) {
-			throw new BadRequestError('Invalid credentials')
+			throw new NotAcceptableError('User Allready Exist')
 		}
 
 		const authObjectId: ObjectId = new ObjectId()

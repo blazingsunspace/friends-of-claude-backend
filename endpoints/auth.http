@@ -4,7 +4,7 @@
 ###
 POST {{baseUrl}}/{{urlPath}}/signup
 Content-Type: application/json
-Accept: application/javascript
+Accept: application/json
 withCredentials: true
 
 {
@@ -20,10 +20,26 @@ withCredentials: true
 ###
 POST {{baseUrl}}/{{urlPath}}/signin
 Content-Type: application/json
-Accept: application/javascript
+Accept: application/json
 withCredentials: true
 
 {
-	"username":"danny",
+	"username":"dannyy",
 	"password":"asdqwe"
 }
+
+
+###
+GET  {{baseUrl}}/{{urlPath}}/signout
+Content-Type: application/json
+Accept: application/json
+withCredentials: true
+
+
+
+
+###
+GET  {{baseUrl}}/{{urlPath}}/currentuser
+Content-Type: application/json
+Accept: application/json
+withCredentials: true

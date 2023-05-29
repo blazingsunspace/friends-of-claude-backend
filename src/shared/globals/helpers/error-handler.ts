@@ -48,6 +48,15 @@ export class BadRequestError extends CustomError {
 	}
 }
 
+export class NotAcceptableError extends CustomError {
+	statusCode = HTTP_STATUS.NOT_ACCEPTABLE
+	status = 'not acceptable'
+
+	constructor(message: string) {
+		super(message)
+	}
+}
+
 export class NotFoundError extends CustomError {
 	statusCode = HTTP_STATUS.NOT_FOUND
 	status = 'not found'
