@@ -12,7 +12,6 @@ export class AuthMiddleware {
 
 		try {
 			const payload: AuthPayload = JWT.verify(req.session?.jwt, config.JWT_TOKEN!) as AuthPayload
-
 			req.currentUser = payload
 
 		} catch (error) {
@@ -24,7 +23,6 @@ export class AuthMiddleware {
 
 
 	public checkAuthentication(req: Request, _res: Response, next: NextFunction): void {
-
 
 		if (!req.currentUser) {
 			throw new NotAuthorizedError('Authentication is required to acces this route. Please login again')

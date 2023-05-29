@@ -4,7 +4,7 @@ import { userService } from '@services/db/user.service'
 import { UserCache } from '@services/redis/user.cache'
 import { IUserDocument } from '@user/interfaces/user.interface'
 import { Request, Response } from 'express'
-import { log } from 'console'
+
 
 
 const userCache: UserCache = new UserCache()
@@ -18,7 +18,6 @@ export class CurrentUser {
 		const cachedUser: IUserDocument = await userCache.getUserFromCache(`${req.currentUser!.userId}`) as IUserDocument
 
 		const existingUser: IUserDocument = cachedUser ? cachedUser : await userService.getUserById(`${req.currentUser!.userId}`)
-
 
 		if (Object.keys(existingUser).length) {
 			isUser = true

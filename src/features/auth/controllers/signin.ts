@@ -31,7 +31,9 @@ export class SignIn {
 			throw new BadRequestError('Invalid credentials2')
 		}
 
+
 		const user: IUserDocument = await userService.getUserByAuthId(`${existingUser!._id}`)
+
 
 
 		const userJwt: string = JWT.sign(
@@ -44,6 +46,8 @@ export class SignIn {
 			},
 			config.JWT_TOKEN!
 		)
+
+
 
 		req.session = { jwt: userJwt }
 

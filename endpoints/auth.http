@@ -39,7 +39,7 @@ withCredentials: true
 
 
 ###
-GET  {{baseUrl}}/{{urlPath}}/currentuser
+GET  {{baseUrl}}/{{urlPath}}/current-user
 Content-Type: application/json
 Accept: application/json
 withCredentials: true

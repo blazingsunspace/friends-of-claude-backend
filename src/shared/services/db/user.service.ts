@@ -23,16 +23,20 @@ class UserService {
 		return users[0]
 	}
 
-	public async getUserByAuthId(authId: string): Promise<IUserDocument> {
 
-		const user: IUserDocument = await UserModel.aggregate([
-			{ $match: { authId: new mongoose.Types.ObjectId(authId) } },
-			{ $lookup: { from: 'Auth', localField: 'authId', foreignField: '_id', as: 'authId' } },
-			{ $unwind: '$authId' },
-			{ $project: this.aggrigateProject() }
-		]) as unknown as IUserDocument
+	public async getUserByUId(uId: string): Promise<IUserDocument> {
+
+		const user: IUserDocument = UserModel.findOne({ uId }).exec() as unknown as IUserDocument
 
 		return user
+	}
+
+	public async getUserByAuthId(authId: string): Promise<IUserDocument> {
+
+		const user: IUserDocument = UserModel.findOne({ _id: authId }).exec() as unknown as IUserDocument
+
+		return user
+
 	}
 
 	private aggrigateProject() {
