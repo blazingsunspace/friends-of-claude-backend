@@ -13,6 +13,7 @@ class RedisConnection extends BaseCache {
 		try {
 			await this.client.connect()
 			const res = await this.client.ping()
+			log.info(res)
 		} catch (error) {
 			log.error(error)
 		}

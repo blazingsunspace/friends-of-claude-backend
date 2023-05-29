@@ -12,6 +12,7 @@ import { IAuthDocument } from '@auth/interfaces/auth.interface'
 import { IUserDocument } from '@user/interfaces/user.interface'
 import { userService } from '@services/db/user.service'
 
+
 export class SignIn {
 	@joiValidation(loginSchema)
 	public async read(req: Request, res: Response): Promise<void> {
