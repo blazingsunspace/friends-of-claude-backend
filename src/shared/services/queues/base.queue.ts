@@ -9,8 +9,7 @@ import { ExpressAdapter } from '@bull-board/express'
 import { config } from '@root/config'
 import { IAuthJob } from '@auth/interfaces/auth.interface'
 
-type IBaseJobData =
-	| IAuthJob
+type IBaseJobData = IAuthJob
 
 let bullAdapters: BullAdapter[] = []
 
@@ -22,7 +21,7 @@ export abstract class BaseQueue {
 	constructor(queueName: string) {
 		this.queue = new Queue(queueName, `${config.REDIS_HOST}`)
 		bullAdapters.push(new BullAdapter(this.queue))
-		bullAdapters = [... new Set(bullAdapters)]
+		bullAdapters = [...new Set(bullAdapters)]
 
 		serverAdapter = new ExpressAdapter()
 		serverAdapter.setBasePath('/queues')

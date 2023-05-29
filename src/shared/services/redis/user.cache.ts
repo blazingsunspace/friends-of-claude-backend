@@ -38,59 +38,75 @@ export class UserCache extends BaseCache {
 		} = createUser
 
 		const firstList: string[] = [
-			'_id', `${_id}`,
-			'uId', `${uId}`,
-			'username', `${username}`,
-			'email', `${email}`,
-			'avatarColor', `${avatarColor}`,
-			'createdAt', `${createdAt}`,
-			'postsCount', `${postsCount}`
+			'_id',
+			`${_id}`,
+			'uId',
+			`${uId}`,
+			'username',
+			`${username}`,
+			'email',
+			`${email}`,
+			'avatarColor',
+			`${avatarColor}`,
+			'createdAt',
+			`${createdAt}`,
+			'postsCount',
+			`${postsCount}`
 		]
 
 		const secondList: string[] = [
-
-			'blocked', JSON.stringify(blocked),
-			'blockedBy', JSON.stringify(blockedBy),
-			'profilePicture', `${profilePicture}`,
-			'followersCount', `${followersCount}`,
-			'followingCount', `${followingCount}`,
-			'notifications', JSON.stringify(notifications),
-			'work', `${work}`,
-			'location', `${location}`,
-			'school', `${school}`,
-			'quote', `${quote}`,
-			'bgImageId', `${bgImageId}`,
-			'bgImageVersion', `${bgImageVersion}`,
-			'social', JSON.stringify(notifications)
+			'blocked',
+			JSON.stringify(blocked),
+			'blockedBy',
+			JSON.stringify(blockedBy),
+			'profilePicture',
+			`${profilePicture}`,
+			'followersCount',
+			`${followersCount}`,
+			'followingCount',
+			`${followingCount}`,
+			'notifications',
+			JSON.stringify(notifications),
+			'work',
+			`${work}`,
+			'location',
+			`${location}`,
+			'school',
+			`${school}`,
+			'quote',
+			`${quote}`,
+			'bgImageId',
+			`${bgImageId}`,
+			'bgImageVersion',
+			`${bgImageVersion}`,
+			'social',
+			JSON.stringify(notifications)
 		]
 
 		const thirdList: string[] = [
-
-
-			'work', `${work}`,
-			'location', `${location}`,
-			'school', `${school}`,
-			'quote', `${quote}`,
-			'bgImageId', `${bgImageId}`,
-			'bgImageVersion', `${bgImageVersion}`
-
+			'work',
+			`${work}`,
+			'location',
+			`${location}`,
+			'school',
+			`${school}`,
+			'quote',
+			`${quote}`,
+			'bgImageId',
+			`${bgImageId}`,
+			'bgImageVersion',
+			`${bgImageVersion}`
 		]
 
-		const dataToSave: string[] = [
-			...firstList,
-			...secondList,
-			...thirdList
-		]
+		const dataToSave: string[] = [...firstList, ...secondList, ...thirdList]
 
 		try {
-
 			if (!this.client.isOpen) {
 				await this.client.connect()
 			}
 
 			await this.client.ZADD('user', { score: parseInt(userUId, 10), value: `${key}` })
 			await this.client.HSET(`users:${key}`, dataToSave)
-
 		} catch (error) {
 			log.error(error)
 			throw new ServerError('Server error try again')
@@ -103,10 +119,7 @@ export class UserCache extends BaseCache {
 				await this.client.connect()
 			}
 
-
-			const response: IUserDocument = await this.client.HGETALL(`users:${userId}`) as unknown as IUserDocument
-
-
+			const response: IUserDocument = (await this.client.HGETALL(`users:${userId}`)) as unknown as IUserDocument
 
 			response.createdAt = new Date(Helpers.parseJson(`${response.createdAt}`))
 			response.postsCount = Helpers.parseJson(`${response.postsCount}`)
@@ -122,7 +135,6 @@ export class UserCache extends BaseCache {
 			response.followingCount = Helpers.parseJson(`${response.followingCount}`)
 
 			return response
-
 		} catch (error) {
 			log.error(error)
 			throw new ServerError('Server error, try again.44')

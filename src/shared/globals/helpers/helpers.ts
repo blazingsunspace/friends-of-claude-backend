@@ -17,7 +17,6 @@ export class Helpers {
 		const charactersLenght = characters.length
 		for (let i = 0; i < intigerLenghth; i++) {
 			result += characters.charAt(Math.floor(Math.random() * charactersLenght))
-
 		}
 		return parseInt(result, 10)
 	}

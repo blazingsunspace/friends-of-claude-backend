@@ -5,8 +5,6 @@ import { UserCache } from '@services/redis/user.cache'
 import { IUserDocument } from '@user/interfaces/user.interface'
 import { Request, Response } from 'express'
 
-
-
 const userCache: UserCache = new UserCache()
 
 export class CurrentUser {
@@ -15,7 +13,7 @@ export class CurrentUser {
 		let token = null
 		let user = null
 
-		const cachedUser: IUserDocument = await userCache.getUserFromCache(`${req.currentUser!.userId}`) as IUserDocument
+		const cachedUser: IUserDocument = (await userCache.getUserFromCache(`${req.currentUser!.userId}`)) as IUserDocument
 
 		const existingUser: IUserDocument = cachedUser ? cachedUser : await userService.getUserById(`${req.currentUser!.userId}`)
 

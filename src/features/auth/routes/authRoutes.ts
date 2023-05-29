@@ -3,7 +3,6 @@ import { SignOut } from '@auth/controllers/signout'
 import { SignUp } from '@auth/controllers/signup'
 import express, { Router } from 'express'
 
-
 class AuthRoutes {
 	private router: Router
 	constructor() {
@@ -11,7 +10,6 @@ class AuthRoutes {
 	}
 
 	public routes(): Router {
-
 		this.router.post('/signup', SignUp.prototype.create)
 		this.router.post('/signin', SignIn.prototype.read)
 

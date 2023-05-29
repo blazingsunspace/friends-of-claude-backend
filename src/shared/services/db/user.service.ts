@@ -1,8 +1,5 @@
-
-
 import { IUserDocument } from '@user/interfaces/user.interface'
 import { UserModel } from '@user/models/user.schema'
-
 
 import mongoose from 'mongoose'
 
@@ -12,7 +9,6 @@ class UserService {
 	}
 
 	public async getUserById(userId: string): Promise<IUserDocument> {
-
 		const users: IUserDocument[] = await UserModel.aggregate([
 			{ $match: { _id: new mongoose.Types.ObjectId(userId) } },
 			{ $lookup: { from: 'Auth', localField: 'authId', foreignField: '_id', as: 'authId' } },
@@ -23,25 +19,19 @@ class UserService {
 		return users[0]
 	}
 
-
 	public async getUserByUId(uId: string): Promise<IUserDocument> {
-
 		const user: IUserDocument = UserModel.findOne({ uId }).exec() as unknown as IUserDocument
 
 		return user
 	}
 
 	public async getUserByAuthId(authId: string): Promise<IUserDocument> {
-
 		const user: IUserDocument = UserModel.findOne({ _id: authId }).exec() as unknown as IUserDocument
 
 		return user
-
 	}
 
 	private aggrigateProject() {
-
-
 		return {
 			_id: 1,
 			username: '$authId.username',
@@ -65,7 +55,6 @@ class UserService {
 			profilePicture: 1
 		}
 	}
-
 }
 
 export const userService: UserService = new UserService()

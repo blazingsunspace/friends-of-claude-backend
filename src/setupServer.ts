@@ -1,4 +1,3 @@
-
 import { Application, json, urlencoded, Response, Request, NextFunction, response } from 'express'
 
 import http, { request } from 'http'
@@ -21,8 +20,6 @@ import { config } from '@root/config'
 
 import applicationRoutes from '@root/routes'
 import { CustomError, IErrorResponse } from '@globals/helpers/error-handler'
-
-
 
 const SERVER_PORT = config.SERVER_PORT
 const log: Logger = config.createLogger('server')
@@ -118,8 +115,6 @@ export class ChattyServer {
 	}
 
 	private socketIOConnections(io: Server): void {
-
 		log.info('socket connections')
-
 	}
 }

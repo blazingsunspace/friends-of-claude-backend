@@ -1,7 +1,6 @@
 import { BaseQueue } from '@services/queues/base.queue'
 import { userWorker } from '@workers/user.worker'
 
-
 class UserQueue extends BaseQueue {
 	constructor() {
 		super('user')

@@ -20,10 +20,8 @@ import { config } from '@root/config'
 const userCache: UserCache = new UserCache()
 
 export class SignUp {
-
 	@joiValidation(signupSchema)
 	public async create(req: Request, res: Response): Promise<void> {
-
 		const { username, email, password, avatarColor, avatarImage } = req.body
 
 		const checkIfUserExist: IAuthDocument = await authService.getUserByUsernameOrEmail(username, email)
@@ -44,7 +42,7 @@ export class SignUp {
 			avatarColor
 		})
 
-		const result: UploadApiResponse = await uploads(avatarImage, `${userObjectId}`, true, true) as UploadApiResponse
+		const result: UploadApiResponse = (await uploads(avatarImage, `${userObjectId}`, true, true)) as UploadApiResponse
 
 		if (!result?.public_id) {
 			throw new BadRequestError('File upload: error occured. try again.')
@@ -64,7 +62,6 @@ export class SignUp {
 		req.session = { jwt: userJwt }
 
 		res.status(HTTP_STATUS.CREATED).json({ message: 'user created succesfuly', user: userDataForCache, token: userJwt })
-
 	}
 
 	private signupToken(data: IAuthDocument, userObjectId: ObjectId): string {
@@ -94,9 +91,7 @@ export class SignUp {
 	}
 
 	private userData(data: IAuthDocument, userObjectId: ObjectId): IUserDocument {
-		const {
-			_id, username, email, uId, password, avatarColor
-		} = data
+		const { _id, username, email, uId, password, avatarColor } = data
 
 		return {
 			_id: userObjectId,
@@ -132,5 +127,4 @@ export class SignUp {
 			}
 		} as unknown as IUserDocument
 	}
-
 }
