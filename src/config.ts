@@ -1,13 +1,8 @@
-
 import dotenv from 'dotenv'
-
-
 
 import cloudinary from 'cloudinary'
 
-
 import bunyan from 'bunyan'
-
 
 dotenv.config({})
 
@@ -23,7 +18,6 @@ class Config {
 	public CLOUDINARY_NAME: string | undefined
 	public CLOUDINARY_API_KEY: string | undefined
 	public CLOUDINARY_API_SECRET: string | undefined
-
 
 	private readonly DEFAULT_DATABASE_URL = 'mongodb://localhost:27017/chatty-backend'
 
@@ -43,9 +37,6 @@ class Config {
 	}
 
 	public createLogger(name: string): bunyan {
-
-
-
 		const d = new Date()
 		const date = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate()
 		/*
@@ -86,10 +77,10 @@ class Config {
 			name: name,
 			streams: [
 				{
-					stream: process.stdout            // log INFO and above to stdout
+					stream: process.stdout // log INFO and above to stdout
 				},
 				{
-					path: `./src/shared/globals/helpers/logs/logs-${date}.txt`// log ERROR and above to a file
+					path: `./src/shared/globals/helpers/logs/logs-${date}.txt` // log ERROR and above to a file
 				}
 			]
 		})
