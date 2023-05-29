@@ -39,39 +39,6 @@ class Config {
 	public createLogger(name: string): bunyan {
 		const d = new Date()
 		const date = d.getFullYear() + '-' + (d.getMonth() + 1) + '-' + d.getDate()
-		/*
-		let bunLevel = bunyan.createLogger({
-
-			name: name
-		}).level()
-
-		let levelOfLog
-
-		switch (bunLevel) {
-			case 10:
-				levelOfLog = '\x1b[1m\x1b[36mtrace\x1b[0m'
-				break
-			case 20:
-				levelOfLog = '\x1b[1m\x1b[33mdebug\x1b[0m'
-				break
-			case 30:
-				levelOfLog = '\x1b[1m\x1b[31minfo\x1b[0m'
-				break
-			case 40:
-				levelOfLog = '\x1b[1m\x1b[33mwarn\x1b[0m'
-				break
-			case 50:
-				levelOfLog = '\x1b[1m\x1b[91merror\x1b[0m'
-				break
-			case 60:
-				levelOfLog = '\x1b[1m\x1b[31mfatal\x1b[0m'
-				break
-
-		}
-
-		console.log('Logs from \x1b[100m' + name.toUpperCase() + '\x1b[0m [\x1b[106m' + d.toISOString() + '\x1b[0m] : (' + levelOfLog + ') ' + JSON.stringify(bunyan.createLogger({
-			name: name
-		}).fields)) */
 
 		return bunyan.createLogger({
 			name: name,

@@ -1,0 +1,45 @@
+@baseUrl = http://localhost:5000
+@urlPath = api/v1
+
+###
+POST {{baseUrl}}/{{urlPath}}/signup
+Content-Type: application/json
+Accept: application/json
+withCredentials: true
+
+{
+	"username":"danny",
+	"password":"asdqwe",
+	"email":"djmyler@gmasdail.com",
+	"avatarColor":"red",
+	"avatarImage":"data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAOEAAADhCAMAAAAJbSJIAAAAJFBMVEX/////QAAAAADZ2trz8/P/QwDxPAC1JgBHVFWsrq78/PxEUVNCBiCIAAAApUlEQVR4nO3WgQ3DIAwEwGAgkGT/fdtKqdQBSpHo3QT/sjDeNgAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAvuUs5+wIQ+UeET3PjjHOES3V1OKYHWSUHHtNKdU9Vp3i1V4FnxXbNTvKGGekt1hz3ZSod8EaZXaYIdaf4cc77LOjDLL+Ll3/P/yDm2Zb/y4FAAAAAAAAAAAAAAAAAAAAAAAAAAAAAPitB/fzAccL94pEAAAAAElFTkSuQmCC"
+}
+
+
+
+###
+POST {{baseUrl}}/{{urlPath}}/signin
+Content-Type: application/json
+Accept: application/json
+withCredentials: true
+
+{
+	"username":"dannyy",
+	"password":"asdqwe"
+}
+
+
+###
+GET  {{baseUrl}}/{{urlPath}}/signout
+Content-Type: application/json
+Accept: application/json
+withCredentials: true
+
+
+
+
+###
+GET  {{baseUrl}}/{{urlPath}}/current-user
+Content-Type: application/json
+Accept: application/json
+withCredentials: true
