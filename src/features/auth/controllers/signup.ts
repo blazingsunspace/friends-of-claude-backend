@@ -9,13 +9,20 @@ import { BadRequestError, NotAcceptableError } from '@globals/helpers/error-hand
 import { Helpers } from '@globals/helpers/helpers'
 import { UploadApiErrorResponse, UploadApiResponse } from 'cloudinary'
 import { uploads } from '@globals/helpers/cloudinary-upload'
-import { IUserDocument } from '@user/interfaces/user.interface'
+import { IAccountActivateParams, IUserDocument } from '@user/interfaces/user.interface'
 import { UserCache } from '@services/redis/user.cache'
 import { omit } from 'lodash'
 import { authQueue } from '@services/queues/auth.queue'
 import { userQueue } from '@services/queues/user.queue'
 import JWT from 'jsonwebtoken'
 import { config } from '@root/config'
+import publicIP from 'ip'
+import moment from 'moment'
+import { accountActivationTemplate } from '@services/emails/templates/account-activation/account-activation-template'
+import { emailQueue } from '@services/queues/email.queue'
+
+import crypto from 'crypto'
+import { AuthModel } from '@auth/models/auth.schema'
 
 const userCache: UserCache = new UserCache()
 
@@ -33,13 +40,29 @@ export class SignUp {
 		const userObjectId: ObjectId = new ObjectId()
 		const uId = `${Helpers.generateRandomIntigers(40)}`
 
+		const randomBytes: Buffer = await Promise.resolve(crypto.randomBytes(20))
+		const randomCharacters: string = randomBytes.toString('hex')
+
+
+		const activateLink = `${config.CLIENT_URL}/reset-password?uId=${uId}&token=${randomCharacters}`
+
+		const templateParams: IAccountActivateParams = {
+			username: username,
+			activateLink: activateLink
+		}
+
+		const template: string = accountActivationTemplate.accountActivationTemplate(templateParams)
+		emailQueue.addEmailJob('sendEmail', { template, receiverEmail: email, subject: 'Account activation 44' })
+
 		const authData: IAuthDocument = SignUp.prototype.sigunupData({
 			_id: authObjectId,
 			uId,
 			username,
 			email,
 			password,
-			avatarColor
+			avatarColor,
+			accountActivationToken: randomCharacters,
+			accountActivationExpires: Date.now() + 60 * 60 * 1000
 		})
 
 		const result: UploadApiResponse = (await uploads(avatarImage, `${userObjectId}`, true, true)) as UploadApiResponse
@@ -55,13 +78,11 @@ export class SignUp {
 
 		//add to database
 		omit(userDataForCache, ['uId', 'username', 'email', 'avatarColour', 'password'])
-		authQueue.addAuthUserJob('addAuthUserToDB', { value: userDataForCache })
+		authQueue.addAuthUserJob('addAuthUserToDB', { value: authData })
 		userQueue.addUserJob('addUserToDB', { value: userDataForCache })
 
-		const userJwt: string = SignUp.prototype.signupToken(authData, userObjectId)
-		req.session = { jwt: userJwt }
 
-		res.status(HTTP_STATUS.CREATED).json({ message: 'user created succesfuly', user: userDataForCache, token: userJwt })
+		res.status(HTTP_STATUS.CREATED).json({ message: 'user created succesfuly', user: userDataForCache })
 	}
 
 	private signupToken(data: IAuthDocument, userObjectId: ObjectId): string {
@@ -71,14 +92,16 @@ export class SignUp {
 				uId: data.uId,
 				email: data.email,
 				username: data.username,
-				avatarColor: data.avatarColor
+				avatarColor: data.avatarColor,
+				role: data.role,
 			},
 			config.JWT_TOKEN!
 		)
 	}
 
 	private sigunupData(data: ISignUpData): IAuthDocument {
-		const { _id, username, email, uId, password, avatarColor } = data
+		const { _id, username, email, uId, password, avatarColor, accountActivationToken, accountActivationExpires } = data
+
 		return {
 			_id,
 			uId,
@@ -86,7 +109,9 @@ export class SignUp {
 			email: Helpers.lowerCase(email),
 			password,
 			avatarColor,
-			createdAt: new Date()
+			createdAt: new Date(),
+			accountActivationToken,
+			accountActivationExpires
 		} as IAuthDocument
 	}
 

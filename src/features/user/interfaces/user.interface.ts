@@ -33,6 +33,18 @@ export interface IResetPasswordParams {
 	date: string
 }
 
+export interface IAccountActivateParams {
+	username: string
+	activateLink: string
+}
+
+export interface IAccountActivatedParams {
+	username: string
+	email: string
+	ipaddress: string
+	date: string
+}
+
 export interface INotificationSettings {
 	messages: boolean
 	reactions: boolean

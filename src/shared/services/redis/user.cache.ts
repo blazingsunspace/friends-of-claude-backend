@@ -75,10 +75,6 @@ export class UserCache extends BaseCache {
 			`${school}`,
 			'quote',
 			`${quote}`,
-			'bgImageId',
-			`${bgImageId}`,
-			'bgImageVersion',
-			`${bgImageVersion}`,
 			'social',
 			JSON.stringify(notifications)
 		]

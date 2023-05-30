@@ -26,7 +26,7 @@ class UserService {
 	}
 
 	public async getUserByAuthId(authId: string): Promise<IUserDocument> {
-		const user: IUserDocument = UserModel.findOne({ _id: authId }).exec() as unknown as IUserDocument
+		const user: IUserDocument = UserModel.findOne({ authId: authId }).exec() as unknown as IUserDocument
 
 		return user
 	}
@@ -51,7 +51,7 @@ class UserService {
 			notifications: 1,
 			social: 1,
 			bgImageVersion: 1,
-			bgImageId: 1,
+			activated: 1,
 			profilePicture: 1
 		}
 	}

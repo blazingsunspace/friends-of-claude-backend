@@ -12,6 +12,8 @@ export class AuthMiddleware {
 
 		try {
 			const payload: AuthPayload = JWT.verify(req.session?.jwt, config.JWT_TOKEN!) as AuthPayload
+
+
 			req.currentUser = payload
 		} catch (error) {
 			throw new NotAuthorizedError('Token is invalid. Please login again')
@@ -24,6 +26,15 @@ export class AuthMiddleware {
 		if (!req.currentUser) {
 			throw new NotAuthorizedError('Authentication is required to acces this route. Please login again')
 		}
+		next()
+	}
+
+	public adminAuthentification(req: Request, _res: Response, next: NextFunction): void {
+
+		if (req.currentUser?.role !== 2) {
+			throw new NotAuthorizedError('This is admin space')
+		}
+
 		next()
 	}
 }

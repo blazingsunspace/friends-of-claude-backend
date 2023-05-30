@@ -14,9 +14,20 @@ export interface AuthPayload {
 	userId: string
 	uId: string
 	email: string
+	role: number
 	username: string
 	avatarColor: string
 	iat?: number
+}
+
+export interface ActivateAccountDocument extends Document {
+	uId: string
+	username: string
+	email: string
+	activatedByEmail: boolean
+	accountActivationToken?: string
+	accountActivationExpires?: number | string
+
 }
 
 export interface IAuthDocument extends Document {
@@ -25,8 +36,13 @@ export interface IAuthDocument extends Document {
 	username: string
 	email: string
 	password?: string
+	role: number
 	avatarColor: string
 	createdAt: Date
+	activatedByEmail: boolean
+	approvedByAdmin: boolean
+	accountActivationToken?: string
+	accountActivationExpires?: number | string
 	passwordResetToken?: string
 	passwordResetExpires?: number | string
 	comparePassword(password: string): Promise<boolean>
@@ -39,7 +55,9 @@ export interface ISignUpData {
 	email: string
 	username: string
 	password: string
-	avatarColor: string
+	avatarColor: string,
+	accountActivationToken: string,
+	accountActivationExpires: number
 }
 
 export interface IAuthJob {
