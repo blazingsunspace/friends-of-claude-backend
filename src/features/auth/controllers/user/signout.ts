@@ -1,4 +1,4 @@
-import { config } from '@root/config'
+import { config } from '@src/config'
 import HTTP_STATUS from 'http-status-codes'
 import JWT from 'jsonwebtoken'
 import { Request, Response } from 'express'

@@ -1,4 +1,4 @@
-import mongoose, { Document } from 'mongoose'
+import mongoose, { Date, Document } from 'mongoose'
 import { ObjectId } from 'mongodb'
 
 export interface IUserDocument extends Document {
@@ -9,6 +9,13 @@ export interface IUserDocument extends Document {
 	password?: string
 	avatarColor?: string
 	uId?: string
+	nottifyMeIfUsedInDocumentary?: boolean
+	listMeInDirectory?: boolean
+	listMyTestemonials?: boolean
+	imStatus?: boolean
+	firstName: string
+	middleName: string
+	lastName: string
 	postsCount: number
 	work: string
 	school: string
@@ -23,7 +30,9 @@ export interface IUserDocument extends Document {
 	bgImageVersion: string
 	bgImageId: string
 	profilePicture: string
-	createdAt?: Date
+	createdAt: Date
+	updatedAt: Date
+	deleted: boolean
 }
 
 export interface IResetPasswordParams {
@@ -32,10 +41,20 @@ export interface IResetPasswordParams {
 	ipaddress: string
 	date: string
 }
-
+export interface IAccountApproveParams {
+	username: string
+}
+export interface IAccountDisapproveParams {
+	username: string
+}
 export interface IAccountActivateParams {
 	username: string
 	activateLink: string
+}
+
+export interface IAccountPromotedToAdmin {
+	username: string
+	date: string
 }
 
 export interface IAccountActivatedParams {

@@ -1,18 +1,22 @@
-import express, { Express } from 'express'
+import express from 'express'
 
-import { ChattyServer } from '@root/setupServer'
+import { ChattyServer } from '@src/setupServer'
 
-import databaseConnection from '@root/setupDatabase'
+import databaseConnection from '@src/setupDatabase'
 
-import { config } from '@root/config'
+/* import sentryConnection from '@src/sentryConnection' */
+
+import { config } from '@src/config'
+
 
 class Application {
 	public initialize(): void {
 		this.loadConfig()
 
-		databaseConnection()
+/* 		databaseConnection() */
 
-		const app: Express = express()
+		const app: express.Application = express()
+
 		const server: ChattyServer = new ChattyServer(app)
 
 		server.start()

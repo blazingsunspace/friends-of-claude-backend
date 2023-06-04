@@ -56,9 +56,13 @@
 			"@workers/*": [
 				"src/shared/workers/*"
 			],
-			"@root/*": [
+			"@src/*": [
 				"src/*"
+			],
+			"@root/*": [
+				"*"
 			]
+			
 		}
 	}
 }

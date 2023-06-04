@@ -1,6 +1,8 @@
+
 import { hash, compare } from 'bcryptjs'
 import { IAuthDocument } from '@auth/interfaces/auth.interface'
 import { model, Model, Schema } from 'mongoose'
+
 
 const SALT_ROUND = 10
 
@@ -12,13 +14,32 @@ const authSchema: Schema = new Schema(
 		password: { type: String },
 		role: { type: Number, default: 1 },
 		avatarColor: { type: String },
-		createdAt: { type: Date, default: Date.now },
-		activatedByEmail: { type: Boolean, default: false},
-		approvedByAdmin: { type: Boolean, default: false},
-		accountActivationToken: { type: String},
+
+		nottifyMeIfUsedInDocumentary: { type: Boolean, default: true },
+		listMeInDirectory: { type: Boolean, default: true },
+		listMyTestemonials: { type: Boolean, default: true },
+
+		imStatus: { type: Boolean, default: true },
+
+		uniqueUrlForLogin: { type: String },
+
+		lastTimeLogged: { type: Date, default: Date.now },
+		isUploaded: { type: Object },
+
+		approvedByAdmin: { type: Boolean, default: false },
+
+		setPassword: { type: Boolean, default: false },
+
+		activatedByEmail: { type: Boolean, default: false },
+		accountActivationToken: { type: String },
 		accountActivationExpires: { type: Number },
-		passwordResetToken: { type: String},
-		passwordResetExpires: { type: Number }
+
+		passwordResetToken: { type: String },
+		passwordResetExpires: { type: Number },
+
+		createdAt: { type: Date, default: Date.now },
+		updatedAt: { type: Object, default: `{[${new Date().toISOString()}]}` },
+		deleted: { type: Boolean, default: false }
 	},
 	{
 		toJSON: {

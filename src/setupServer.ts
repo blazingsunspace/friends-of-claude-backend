@@ -1,6 +1,8 @@
-import { Application, json, urlencoded, Response, Request, NextFunction, response } from 'express'
+import { Application, json, urlencoded, Response, Request, NextFunction } from 'express'
 
-import http, { request } from 'http'
+
+import http2 from 'http2'
+import { readFileSync } from 'fs'
 import cors from 'cors'
 import helmet from 'helmet'
 import hpp from 'hpp'
@@ -16,13 +18,39 @@ import Logger from 'bunyan'
 
 import 'express-async-errors'
 
-import { config } from '@root/config'
+import { config } from '@src/config'
 
-import applicationRoutes from '@root/routes'
+import applicationRoutes from '@src/routes'
 import { CustomError, IErrorResponse } from '@globals/helpers/error-handler'
+import spdy from 'spdy'
+import path from 'path'
+
+
+
+
+import cookie from 'cookie'
+import helper from './helper'
+
+const { HTTP2_HEADER_PATH } = http2.constants
+const PORT = process.env.PORT || 4000
+const PUBLIC_PATH = path.join(__dirname, './')
+
+const publicFiles = helper.getFiles(PUBLIC_PATH)
+
+
 
 const SERVER_PORT = config.SERVER_PORT
 const log: Logger = config.createLogger('server')
+
+
+const options = {
+	
+	key: readFileSync(path.join(__dirname + './../host.key')),
+	cert: readFileSync(path.join(__dirname + './../host.cert')),
+	allowHTTP1:true
+}
+
+
 export class ChattyServer {
 	private app: Application
 
@@ -36,7 +64,7 @@ export class ChattyServer {
 		this.routeMiddleware(this.app)
 		this.globalErrorHandler(this.app)
 		this.startServer(this.app)
-		log.error('error connecting to datab333e')
+
 	}
 
 	private securityMiddleware(app: Application): void {
@@ -44,15 +72,16 @@ export class ChattyServer {
 			cookieSession({
 				name: 'session',
 				keys: [config.SECRET_KEY_ONE!, config.SECRET_KEY_TWO!],
-				maxAge: 24 * 7 * 3600000,
+				maxAge: 2 * 60 * 60 * 1000,
 				secure: config.NODE_ENV !== 'development'
 			})
 		)
+		app.set('trust proxy', true)
 		app.use(hpp())
 		app.use(helmet())
 		app.use(
 			cors({
-				origin: config.CLIENT_URL,
+				origin: '*'/* config.CLIENT_URL */,
 				credentials: true,
 				optionsSuccessStatus: 200,
 				methods: ['GET', 'PUT', 'INSERT', 'POST', 'DELETE', 'OPTIONS']
@@ -84,16 +113,24 @@ export class ChattyServer {
 
 	private async startServer(app: Application): Promise<void> {
 		try {
-			const httpServer: http.Server = new http.Server(app)
-			const socketIO: Server = await this.createSocketIO(httpServer)
-			this.startHttpServer(httpServer)
-			this.socketIOConnections(socketIO)
+/* const httpServer: http2.Http2SecureServer = http2.createSecureServer(options, app) */
+
+			const server: spdy.server.Server = spdy.createServer(
+				options,
+				app
+			)
+			
+			/* var server = spdy.createSer *//* ver(options, app) */
+			/* server.listen(SERVER_PORT ) */
+			const socketIO: Server = await this.createSocketIO(server)
+			this.startHttpServer(server)
+				this.socketIOConnections(socketIO)
 		} catch (error) {
 			log.error(error)
 		}
 	}
 
-	private async createSocketIO(httpServer: http.Server): Promise<Server> {
+	private async createSocketIO(httpServer: spdy.server.Server): Promise<Server> {
 		const io: Server = new Server(httpServer, {
 			cors: {
 				origin: config.CLIENT_URL,
@@ -107,7 +144,7 @@ export class ChattyServer {
 		return io
 	}
 
-	private startHttpServer(httpServer: http.Server): void {
+	private startHttpServer(httpServer: spdy.server.Server): void {
 		log.info(`Server has started with process ${process.pid}`)
 		httpServer.listen(SERVER_PORT, function () {
 			log.info(`Server running on port ${SERVER_PORT}`)
@@ -118,3 +155,5 @@ export class ChattyServer {
 		log.info('socket connections')
 	}
 }
+
+

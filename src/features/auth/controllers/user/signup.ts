@@ -1,7 +1,7 @@
 import HTTP_STATUS from 'http-status-codes'
 import { ObjectId } from 'mongodb'
 import { Request, Response } from 'express'
-import { joiValidation } from '@globals/decorators/joi-validation.decorators'
+
 import { signupSchema } from '@auth/schemes/signup'
 import { IAuthDocument, ISignUpData } from '@auth/interfaces/auth.interface'
 import { authService } from '@services/db/auth.service'
@@ -15,7 +15,7 @@ import { omit } from 'lodash'
 import { authQueue } from '@services/queues/auth.queue'
 import { userQueue } from '@services/queues/user.queue'
 import JWT from 'jsonwebtoken'
-import { config } from '@root/config'
+import { config } from '@src/config'
 import publicIP from 'ip'
 import moment from 'moment'
 import { accountActivationTemplate } from '@services/emails/templates/account-activation/account-activation-template'
@@ -23,13 +23,14 @@ import { emailQueue } from '@services/queues/email.queue'
 
 import crypto from 'crypto'
 import { AuthModel } from '@auth/models/auth.schema'
+import { accountCreatedByAdminTemplate } from '@services/emails/templates/account-created-by-admin/account-created-by-admin-template'
 
 const userCache: UserCache = new UserCache()
 
 export class SignUp {
-	@joiValidation(signupSchema)
+
 	public async create(req: Request, res: Response): Promise<void> {
-		const { username, email, password, avatarColor, avatarImage } = req.body
+		const { username, email, password, avatarColor, avatarImage, nottifyMeIfUsedInDocumentary, listMeInDirectory, listMyTestemonials, imStatus } = req.body
 
 		const checkIfUserExist: IAuthDocument = await authService.getUserByUsernameOrEmail(username, email)
 		if (checkIfUserExist) {
@@ -43,17 +44,6 @@ export class SignUp {
 		const randomBytes: Buffer = await Promise.resolve(crypto.randomBytes(20))
 		const randomCharacters: string = randomBytes.toString('hex')
 
-
-		const activateLink = `${config.CLIENT_URL}/reset-password?uId=${uId}&token=${randomCharacters}`
-
-		const templateParams: IAccountActivateParams = {
-			username: username,
-			activateLink: activateLink
-		}
-
-		const template: string = accountActivationTemplate.accountActivationTemplate(templateParams)
-		emailQueue.addEmailJob('sendEmail', { template, receiverEmail: email, subject: 'Account activation 44' })
-
 		const authData: IAuthDocument = SignUp.prototype.sigunupData({
 			_id: authObjectId,
 			uId,
@@ -61,8 +51,14 @@ export class SignUp {
 			email,
 			password,
 			avatarColor,
+			approvedByAdmin: req.currentUser?.role === 2 ? true : false,
+			setPassword: req.currentUser?.role === 2 ? true : false,
+			nottifyMeIfUsedInDocumentary,
+			listMeInDirectory,
+			listMyTestemonials,
+			imStatus,
 			accountActivationToken: randomCharacters,
-			accountActivationExpires: Date.now() + 60 * 60 * 1000
+			accountActivationExpires: new Date().getTime() + 1000 * 60 * 60
 		})
 
 		const result: UploadApiResponse = (await uploads(avatarImage, `${userObjectId}`, true, true)) as UploadApiResponse
@@ -81,6 +77,29 @@ export class SignUp {
 		authQueue.addAuthUserJob('addAuthUserToDB', { value: authData })
 		userQueue.addUserJob('addUserToDB', { value: userDataForCache })
 
+		if (req.currentUser?.role === 2) {
+			const activateLink = `${config.CLIENT_URL}/activate-account-and-set-password?uId=${uId}&token=${randomCharacters}`
+
+			const templateParams: IAccountActivateParams = {
+				username: username,
+				activateLink: activateLink
+			}
+
+			const template: string = accountCreatedByAdminTemplate.accountCreatedByAdminTemplateTemplate(templateParams)
+			emailQueue.addEmailJob('sendEmail', { template, receiverEmail: email, subject: 'Account activation 44' })
+		} else {
+			const activateLink = `${config.CLIENT_URL}/activate-account?uId=${uId}&token=${randomCharacters}`
+
+			const templateParams: IAccountActivateParams = {
+				username: username,
+				activateLink: activateLink
+			}
+
+			const template: string = accountActivationTemplate.accountActivationTemplate(templateParams)
+			emailQueue.addEmailJob('sendEmail', { template, receiverEmail: email, subject: 'Account activation 44' })
+		}
+
+
 
 		res.status(HTTP_STATUS.CREATED).json({ message: 'user created succesfuly', user: userDataForCache })
 	}
@@ -93,6 +112,10 @@ export class SignUp {
 				email: data.email,
 				username: data.username,
 				avatarColor: data.avatarColor,
+				nottifyMeIfUsedInDocumentary: data.nottifyMeIfUsedInDocumentary,
+				listMeInDirectory: data.listMeInDirectory,
+				listMyTestemonials: data.listMyTestemonials,
+				imStatus: data.imStatus,
 				role: data.role,
 			},
 			config.JWT_TOKEN!
@@ -100,8 +123,8 @@ export class SignUp {
 	}
 
 	private sigunupData(data: ISignUpData): IAuthDocument {
-		const { _id, username, email, uId, password, avatarColor, accountActivationToken, accountActivationExpires } = data
-
+		const { _id, username, email, uId, password, avatarColor, accountActivationToken, accountActivationExpires, nottifyMeIfUsedInDocumentary, listMeInDirectory, listMyTestemonials, imStatus } = data
+		const currentTimestam = new Date()
 		return {
 			_id,
 			uId,
@@ -109,15 +132,20 @@ export class SignUp {
 			email: Helpers.lowerCase(email),
 			password,
 			avatarColor,
-			createdAt: new Date(),
+			nottifyMeIfUsedInDocumentary,
+			listMeInDirectory,
+			listMyTestemonials,
+			imStatus,
+			createdAt: currentTimestam,
+			updatedAt: currentTimestam,
 			accountActivationToken,
 			accountActivationExpires
-		} as IAuthDocument
+		} as unknown as IAuthDocument
 	}
 
 	private userData(data: IAuthDocument, userObjectId: ObjectId): IUserDocument {
-		const { _id, username, email, uId, password, avatarColor } = data
-
+		const { _id, username, email, uId, password, avatarColor, nottifyMeIfUsedInDocumentary, listMeInDirectory, listMyTestemonials, imStatus } = data
+		const currentTimestam = new Date()
 		return {
 			_id: userObjectId,
 			authId: _id,
@@ -126,6 +154,11 @@ export class SignUp {
 			email,
 			password,
 			avatarColor,
+			nottifyMeIfUsedInDocumentary,
+			listMeInDirectory,
+			listMyTestemonials,
+			imStatus,
+			createdAt: currentTimestam,
 			profilePicture: '',
 			blocked: [],
 			blockedBy: [],

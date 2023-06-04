@@ -1,4 +1,6 @@
-import { Document } from 'mongoose'
+
+
+import  { Date, Document } from 'mongoose'
 import { ObjectId } from 'mongodb'
 import { IUserDocument } from '@user/interfaces/user.interface'
 
@@ -11,12 +13,16 @@ declare global {
 }
 
 export interface AuthPayload {
-	userId: string
-	uId: string
-	email: string
-	role: number
-	username: string
-	avatarColor: string
+	_id: string | ObjectId
+	authId?: string | ObjectId
+	uId?: string
+	email?: string
+	role?: number
+	username?: string
+	avatarColor?: string
+	approvedByAdmin?:boolean
+	setPassword?: boolean
+	activatedByEmail?: boolean
 	iat?: number
 }
 
@@ -38,13 +44,33 @@ export interface IAuthDocument extends Document {
 	password?: string
 	role: number
 	avatarColor: string
-	createdAt: Date
-	activatedByEmail: boolean
+
+
+	nottifyMeIfUsedInDocumentary: boolean
+	listMeInDirectory: boolean
+	listMyTestemonials: boolean
+
+	imStatus: boolean
+	uniqueUrlForLogin: string
+
+	lastTimeLogged: Date
+	isUploaded: object
+
 	approvedByAdmin: boolean
+
+	setPassword: boolean
+
+	activatedByEmail: boolean
 	accountActivationToken?: string
 	accountActivationExpires?: number | string
+
 	passwordResetToken?: string
 	passwordResetExpires?: number | string
+
+	createdAt: Date
+	updatedAt: Date
+	deleted: boolean
+
 	comparePassword(password: string): Promise<boolean>
 	hashPassword(password: string): Promise<string>
 }
@@ -55,9 +81,15 @@ export interface ISignUpData {
 	email: string
 	username: string
 	password: string
-	avatarColor: string,
-	accountActivationToken: string,
+	avatarColor: string
+	nottifyMeIfUsedInDocumentary: boolean
+	listMeInDirectory: boolean
+	listMyTestemonials: boolean
+	imStatus:boolean
+	accountActivationToken: string
 	accountActivationExpires: number
+	approvedByAdmin?: boolean
+	setPassword?: boolean
 }
 
 export interface IAuthJob {

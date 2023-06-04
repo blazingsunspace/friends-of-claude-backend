@@ -1,4 +1,5 @@
-import { CurrentUser } from '@auth/controllers/current-user'
+import { CurrentUser } from '@auth/controllers/user/current-user'
+
 import { authMiddleware } from '@globals/helpers/auth-midleware'
 import express, { Router } from 'express'
 
@@ -10,7 +11,7 @@ class CurrentUserRoutes {
 	}
 
 	public routes(): Router {
-		this.router.get('/current-user', authMiddleware.adminAuthentification, CurrentUser.prototype.read)
+		this.router.get('/current-user', authMiddleware.checkAuthentication, CurrentUser.prototype.read)
 
 		return this.router
 	}
