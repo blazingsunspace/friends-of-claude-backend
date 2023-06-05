@@ -1,4 +1,3 @@
-
 import nodemailer from 'nodemailer'
 import Mail from 'nodemailer/lib/mailer'
 import Logger from 'bunyan'
@@ -15,12 +14,9 @@ interface IMailOptions {
 
 const log: Logger = config.createLogger('mailOptions')
 
-
 sendGridMail.setApiKey(config.SENDGRID_API_KEY!)
 
 class MailTransport {
-
-
 	public async sendEmail(receiverEmail: string, subject: string, body: string): Promise<void> {
 		if (config.NODE_ENV === 'test' || config.NODE_ENV === 'development') {
 			this.developmentEmailSneder(receiverEmail, subject, body)
@@ -30,7 +26,6 @@ class MailTransport {
 	}
 
 	private async productionEmailSneder(receiverEmail: string, subject: string, body: string): Promise<void> {
-
 		const mailOptions: IMailOptions = {
 			from: `Friends Of Claude <${config.SENDER_EMAIL}>`,
 			to: receiverEmail,
@@ -45,8 +40,6 @@ class MailTransport {
 			log.error('Error sending email - production', error)
 			throw new BadRequestError('Error sending email - production')
 		}
-
-
 	}
 	private async developmentEmailSneder(receiverEmail: string, subject: string, body: string): Promise<void> {
 		// create reusable transporter object using the default SMTP transport
@@ -56,10 +49,9 @@ class MailTransport {
 			secure: false, // true for 465, false for other ports
 			auth: {
 				user: config.SENDER_EMAIL, // generated ethereal user
-				pass: config.SENDER_EMAIL_PASSWORD, // generated ethereal password
-			},
+				pass: config.SENDER_EMAIL_PASSWORD // generated ethereal password
+			}
 		})
-
 
 		const mailOptions: IMailOptions = {
 			from: `Friends Of Claude <${config.SENDER_EMAIL}>`,
@@ -75,8 +67,6 @@ class MailTransport {
 			log.error('Error sending email - Development', error)
 			throw new BadRequestError('Error sending email - Development')
 		}
-
-
 	}
 }
 

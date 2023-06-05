@@ -1,43 +1,32 @@
 import { Request, Response } from 'express'
 import { config } from '@src/config'
 import HTTP_STATUS from 'http-status-codes'
-import { ObjectId } from 'mongodb'
-import { joiValidation } from '@globals/decorators/joi-validation.decorators'
 
 import JWT from 'jsonwebtoken'
 import { authService } from '@services/db/auth.service'
 import { BadRequestError } from '@globals/helpers/error-handler'
-import { loginSchema } from '@auth/schemes/signin'
+
 import { IAuthDocument } from '@auth/interfaces/auth.interface'
 import { IUserDocument } from '@user/interfaces/user.interface'
 import { userService } from '@services/db/user.service'
-import IP from 'ip'
 
 export class SignIn {
-	
 	public async read(req: Request, res: Response): Promise<void> {
 		const { password, email } = req.body
-
 
 		const existingUser: IAuthDocument = await authService.getUserByUsernameOrEmail(email, email)
 
 		if (!existingUser) {
-
 			throw new BadRequestError('Invalid credentials1')
-
 		}
-
 
 		const passwordsMarch: boolean = await existingUser.comparePassword(password)
 
 		if (!passwordsMarch) {
-
-
 			throw new BadRequestError('Invalid credentials2')
 		}
 
 		if (!existingUser.activatedByEmail) {
-
 			throw new BadRequestError('account not activated')
 		}
 
@@ -45,8 +34,6 @@ export class SignIn {
 
 		const userInfId: IUserDocument = (await userService.getUserByAuthId(`${existingUser!._id}`)) as IUserDocument
 
-	
-		
 		const userJwt: string = JWT.sign(
 			{
 				_id: existingUser._id,
@@ -54,8 +41,6 @@ export class SignIn {
 			},
 			config.JWT_TOKEN!
 		)
-
-
 
 		req.session = { jwt: userJwt }
 
@@ -71,6 +56,4 @@ export class SignIn {
 
 		res.status(HTTP_STATUS.OK).json({ message: 'user login succesfuly', user: userDocuments, token: userJwt })
 	}
-
-
 }

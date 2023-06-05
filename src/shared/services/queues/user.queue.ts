@@ -1,15 +1,16 @@
 import { BaseQueue } from '@services/queues/base.queue'
-import { userWorker } from '@workers/user.worker'
+import { IUserDocument } from '@user/interfaces/user.interface'
+import { addUserToDBWorker } from '@workers/user.worker'
 
-class UserQueue extends BaseQueue {
-	constructor() {
-		super('user')
-		this.processJob('addUserToDB', 5, userWorker.addUserToDB)
+export default class UserQueue extends BaseQueue {
+	constructor(jobName: string, data: IUserDocument) {
+		super(jobName)
+		this.addUserJob(jobName, data)
 	}
 
-	public addUserJob(name: string, data: any): void {
-		this.addJob(name, data)
+	public async addUserJob(jobName: string, data: IUserDocument): Promise<void> {
+		await this.addJobToQueue(jobName, data)
+
+		addUserToDBWorker(jobName)
 	}
 }
-
-export const userQueue: UserQueue = new UserQueue()

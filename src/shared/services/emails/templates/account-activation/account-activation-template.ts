@@ -6,8 +6,6 @@ class AccountActivationTemplate {
 	public accountActivationTemplate(templateParams: IAccountActivateParams): string {
 		const { username, activateLink } = templateParams
 
-
-
 		return ejs.render(fs.readFileSync(__dirname + '/account-activation-template.ejs', 'utf8'), {
 			username,
 			activateLink,

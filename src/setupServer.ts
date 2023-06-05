@@ -1,7 +1,5 @@
 import { Application, json, urlencoded, Response, Request, NextFunction } from 'express'
 
-
-import http2 from 'http2'
 import { readFileSync } from 'fs'
 import cors from 'cors'
 import helmet from 'helmet'
@@ -20,36 +18,19 @@ import 'express-async-errors'
 
 import { config } from '@src/config'
 
-import applicationRoutes from '@src/routes'
+import { ApplicationRoutes } from '@src/routes'
 import { CustomError, IErrorResponse } from '@globals/helpers/error-handler'
 import spdy from 'spdy'
 import path from 'path'
 
-
-
-
-import cookie from 'cookie'
-import helper from './helper'
-
-const { HTTP2_HEADER_PATH } = http2.constants
-const PORT = process.env.PORT || 4000
-const PUBLIC_PATH = path.join(__dirname, './')
-
-const publicFiles = helper.getFiles(PUBLIC_PATH)
-
-
-
 const SERVER_PORT = config.SERVER_PORT
 const log: Logger = config.createLogger('server')
 
-
 const options = {
-	
 	key: readFileSync(path.join(__dirname + './../host.key')),
 	cert: readFileSync(path.join(__dirname + './../host.cert')),
-	allowHTTP1:true
+	allowHTTP1: true
 }
-
 
 export class ChattyServer {
 	private app: Application
@@ -64,7 +45,6 @@ export class ChattyServer {
 		this.routeMiddleware(this.app)
 		this.globalErrorHandler(this.app)
 		this.startServer(this.app)
-
 	}
 
 	private securityMiddleware(app: Application): void {
@@ -81,7 +61,7 @@ export class ChattyServer {
 		app.use(helmet())
 		app.use(
 			cors({
-				origin: '*'/* config.CLIENT_URL */,
+				origin: '*' /* config.CLIENT_URL */,
 				credentials: true,
 				optionsSuccessStatus: 200,
 				methods: ['GET', 'PUT', 'INSERT', 'POST', 'DELETE', 'OPTIONS']
@@ -94,7 +74,7 @@ export class ChattyServer {
 		app.use(urlencoded({ extended: true, limit: '50mb' }))
 	}
 	private routeMiddleware(app: Application): void {
-		applicationRoutes(app)
+		new ApplicationRoutes(app)
 	}
 
 	private globalErrorHandler(app: Application): void {
@@ -113,18 +93,15 @@ export class ChattyServer {
 
 	private async startServer(app: Application): Promise<void> {
 		try {
-/* const httpServer: http2.Http2SecureServer = http2.createSecureServer(options, app) */
+			/* const httpServer: http2.Http2SecureServer = http2.createSecureServer(options, app) */
 
-			const server: spdy.server.Server = spdy.createServer(
-				options,
-				app
-			)
-			
-			/* var server = spdy.createSer *//* ver(options, app) */
+			const server: spdy.server.Server = spdy.createServer(options, app)
+
+			/* var server = spdy.createSer */ /* ver(options, app) */
 			/* server.listen(SERVER_PORT ) */
 			const socketIO: Server = await this.createSocketIO(server)
 			this.startHttpServer(server)
-				this.socketIOConnections(socketIO)
+			this.socketIOConnections(socketIO)
 		} catch (error) {
 			log.error(error)
 		}
@@ -155,5 +132,3 @@ export class ChattyServer {
 		log.info('socket connections')
 	}
 }
-
-

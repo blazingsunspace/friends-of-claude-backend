@@ -35,16 +35,16 @@ model User {
     listMeInDirectory            Boolean   @default(true)
     listMyTestemonials           Boolean   @default(true)
     imStatus                     Boolean   @default(true)
-    uniqueUrlForLogin            String    @db.VarChar(60)
+    uniqueUrlForLogin            String?   @db.VarChar(60)
     lastTimeLogged               DateTime  @updatedAt
-    isUploaded                   Json      @db.Json
+    isUploaded                   Json?     @db.Json
     approvedByAdmin              Boolean   @default(false)
     setPassword                  Boolean   @default(false)
     activatedByEmail             Boolean   @default(false)
-    accountActivationToken       String    @db.VarChar(60)
-    accountActivationExpires     BigInt    @db.BigInt
-    passwordResetToken           String    @db.VarChar(60)
-    passwordResetExpires         BigInt    @db.BigInt
+    accountActivationToken       String?   @db.VarChar(60)
+    accountActivationExpires     BigInt?   @db.BigInt
+    passwordResetToken           String?   @db.VarChar(60)
+    passwordResetExpires         BigInt?   @db.BigInt
     createdAt                    DateTime  @default(now())
     updatedAt                    DateTime  @updatedAt
     deleted                      Boolean   @default(false)
@@ -113,22 +113,24 @@ model ProfileNotifications {
 model Category {
     id        Int       @id @default(autoincrement())
     name      String
-    posts     Post[]
     createdAt DateTime  @default(now())
     updatedAt DateTime  @updatedAt
     deletedAt DateTime?
     deleted   Boolean   @default(false)
+    posts     Post[]
+    autors    Author[]
 }
 
 model Author {
-    id        Int       @id @default(autoincrement())
-    name      String
-    posts     Post[]
-    Profile   Profile?
-    createdAt DateTime  @default(now())
-    updatedAt DateTime  @updatedAt
-    deletedAt DateTime?
-    deleted   Boolean   @default(false)
+    id         Int        @id @default(autoincrement())
+    name       String
+    createdAt  DateTime   @default(now())
+    updatedAt  DateTime   @updatedAt
+    deletedAt  DateTime?
+    deleted    Boolean    @default(false)
+    posts      Post[]
+    Profile    Profile?
+    categories Category[]
 }
 
 model Post {

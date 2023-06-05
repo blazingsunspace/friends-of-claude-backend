@@ -2,35 +2,43 @@ import HTTP_STATUS from 'http-status-codes'
 import { ObjectId } from 'mongodb'
 import { Request, Response } from 'express'
 
-import { signupSchema } from '@auth/schemes/signup'
 import { IAuthDocument, ISignUpData } from '@auth/interfaces/auth.interface'
 import { authService } from '@services/db/auth.service'
 import { BadRequestError, NotAcceptableError } from '@globals/helpers/error-handler'
 import { Helpers } from '@globals/helpers/helpers'
-import { UploadApiErrorResponse, UploadApiResponse } from 'cloudinary'
+import { UploadApiResponse } from 'cloudinary'
 import { uploads } from '@globals/helpers/cloudinary-upload'
 import { IAccountActivateParams, IUserDocument } from '@user/interfaces/user.interface'
 import { UserCache } from '@services/redis/user.cache'
 import { omit } from 'lodash'
-import { authQueue } from '@services/queues/auth.queue'
-import { userQueue } from '@services/queues/user.queue'
+
+import UserQueue from '@services/queues/user.queue'
 import JWT from 'jsonwebtoken'
 import { config } from '@src/config'
-import publicIP from 'ip'
-import moment from 'moment'
+
 import { accountActivationTemplate } from '@services/emails/templates/account-activation/account-activation-template'
-import { emailQueue } from '@services/queues/email.queue'
+import EmailQueue from '@services/queues/email.queue'
 
 import crypto from 'crypto'
-import { AuthModel } from '@auth/models/auth.schema'
-import { accountCreatedByAdminTemplate } from '@services/emails/templates/account-created-by-admin/account-created-by-admin-template'
 
+import { accountCreatedByAdminTemplate } from '@services/emails/templates/account-created-by-admin/account-created-by-admin-template'
+import { PrismaClient } from '@prisma/client'
+import AuthQueue from '@services/queues/auth.queue'
 const userCache: UserCache = new UserCache()
 
 export class SignUp {
-
 	public async create(req: Request, res: Response): Promise<void> {
-		const { username, email, password, avatarColor, avatarImage, nottifyMeIfUsedInDocumentary, listMeInDirectory, listMyTestemonials, imStatus } = req.body
+		const {
+			username,
+			email,
+			password,
+			avatarColor,
+			avatarImage,
+			nottifyMeIfUsedInDocumentary,
+			listMeInDirectory,
+			listMyTestemonials,
+			imStatus
+		} = req.body
 
 		const checkIfUserExist: IAuthDocument = await authService.getUserByUsernameOrEmail(username, email)
 		if (checkIfUserExist) {
@@ -74,8 +82,37 @@ export class SignUp {
 
 		//add to database
 		omit(userDataForCache, ['uId', 'username', 'email', 'avatarColour', 'password'])
-		authQueue.addAuthUserJob('addAuthUserToDB', { value: authData })
-		userQueue.addUserJob('addUserToDB', { value: userDataForCache })
+
+		new AuthQueue('addAuthUserToDB', authData)
+		new UserQueue('addUserToDB', userDataForCache)
+
+		/*
+		const prisma = new PrismaClient({
+			log: ['query']
+		})
+
+
+		async function main() {
+			const data: AuthPostgres = {
+				data: {
+					email: 'ariadne@prisma.io',
+					username: 'Ariadne',
+					role: 'USER',
+					password: 'milner'
+				},
+			} as unknown as AuthPostgres
+			const profile = await prisma.user.create(data)
+		}
+
+		main()
+			.then(async () => {
+				await prisma.$disconnect()
+			})
+			.catch(async (e) => {
+				console.error(e)
+				await prisma.$disconnect()
+				process.exit(1)
+			}) */
 
 		if (req.currentUser?.role === 2) {
 			const activateLink = `${config.CLIENT_URL}/activate-account-and-set-password?uId=${uId}&token=${randomCharacters}`
@@ -86,7 +123,8 @@ export class SignUp {
 			}
 
 			const template: string = accountCreatedByAdminTemplate.accountCreatedByAdminTemplateTemplate(templateParams)
-			emailQueue.addEmailJob('sendEmail', { template, receiverEmail: email, subject: 'Account activation 44' })
+
+			new EmailQueue('sendAccountCreatedByAdminEmail', { template, receiverEmail: email, subject: 'Account activation 44' })
 		} else {
 			const activateLink = `${config.CLIENT_URL}/activate-account?uId=${uId}&token=${randomCharacters}`
 
@@ -96,10 +134,8 @@ export class SignUp {
 			}
 
 			const template: string = accountActivationTemplate.accountActivationTemplate(templateParams)
-			emailQueue.addEmailJob('sendEmail', { template, receiverEmail: email, subject: 'Account activation 44' })
+			new EmailQueue('sendAccountActivationEmail', { template, receiverEmail: email, subject: 'Account activation 44' })
 		}
-
-
 
 		res.status(HTTP_STATUS.CREATED).json({ message: 'user created succesfuly', user: userDataForCache })
 	}
@@ -116,14 +152,27 @@ export class SignUp {
 				listMeInDirectory: data.listMeInDirectory,
 				listMyTestemonials: data.listMyTestemonials,
 				imStatus: data.imStatus,
-				role: data.role,
+				role: data.role
 			},
 			config.JWT_TOKEN!
 		)
 	}
 
 	private sigunupData(data: ISignUpData): IAuthDocument {
-		const { _id, username, email, uId, password, avatarColor, accountActivationToken, accountActivationExpires, nottifyMeIfUsedInDocumentary, listMeInDirectory, listMyTestemonials, imStatus } = data
+		const {
+			_id,
+			username,
+			email,
+			uId,
+			password,
+			avatarColor,
+			accountActivationToken,
+			accountActivationExpires,
+			nottifyMeIfUsedInDocumentary,
+			listMeInDirectory,
+			listMyTestemonials,
+			imStatus
+		} = data
 		const currentTimestam = new Date()
 		return {
 			_id,
@@ -144,7 +193,18 @@ export class SignUp {
 	}
 
 	private userData(data: IAuthDocument, userObjectId: ObjectId): IUserDocument {
-		const { _id, username, email, uId, password, avatarColor, nottifyMeIfUsedInDocumentary, listMeInDirectory, listMyTestemonials, imStatus } = data
+		const {
+			_id,
+			username,
+			email,
+			uId,
+			password,
+			avatarColor,
+			nottifyMeIfUsedInDocumentary,
+			listMeInDirectory,
+			listMyTestemonials,
+			imStatus
+		} = data
 		const currentTimestam = new Date()
 		return {
 			_id: userObjectId,

@@ -8,12 +8,11 @@ import databaseConnection from '@src/setupDatabase'
 
 import { config } from '@src/config'
 
-
 class Application {
 	public initialize(): void {
 		this.loadConfig()
 
-/* 		databaseConnection() */
+		databaseConnection()
 
 		const app: express.Application = express()
 

@@ -16,16 +16,12 @@ export class AuthMiddleware {
 		try {
 			const payload: AuthPayload = JWT.verify(req.session?.jwt, config.JWT_TOKEN!) as AuthPayload
 
-	
 			const existingUser: AuthPayload = await authService.getAuthUserById2(`${payload._id}`)
-		
+
 			const existingUser2: IUserDocument = await userService.getUserByAuthId(`${payload._id}`)
 			existingUser.authId = existingUser2._id
-	
-			
-		
-			req.currentUser = existingUser
 
+			req.currentUser = existingUser
 		} catch (error) {
 			throw new NotAuthorizedError('Token is invalid. Please login again')
 		}
@@ -34,14 +30,10 @@ export class AuthMiddleware {
 	}
 
 	public async checkAuthentication(req: Request, _res: Response, next: NextFunction): Promise<void> {
-
-
-
 		if (req.currentUser?.setPassword) {
 			throw new NotAuthorizedError('You need to set password. please wisit /set-password route')
 		}
-	
-		
+
 		if (!req.currentUser?.activatedByEmail) {
 			throw new NotAuthorizedError('Your account is not activated')
 		}
@@ -54,31 +46,21 @@ export class AuthMiddleware {
 	}
 
 	public async adminAuthentification(req: Request, _res: Response, next: NextFunction): Promise<void> {
-
-
 		const existingUser: IAuthDocument = await authService.getAuthUserById(`${req.currentUser?._id}`)
-
 
 		if (existingUser?.role !== 2 && existingUser?.role !== 5) {
 			throw new NotAuthorizedError('This is admin space')
 		}
 
-
-
-
 		next()
 	}
 
 	public async superAuthentification(req: Request, _res: Response, next: NextFunction): Promise<void> {
-
-
 		const existingUser: IAuthDocument = await authService.getAuthUserById(`${req.currentUser?._id}`)
-
 
 		if (existingUser?.role !== 5) {
 			throw new NotAuthorizedError('This is super admin space')
 		}
-
 
 		next()
 	}

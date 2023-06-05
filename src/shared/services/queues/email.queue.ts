@@ -1,16 +1,16 @@
 import { BaseQueue } from '@services/queues/base.queue'
 import { IEmailJob } from '@user/interfaces/user.interface'
-import { emailWorker } from '@workers/email.worker'
+import { addEmailToDBWorker } from '@workers/email.worker'
 
-class EmailQueue extends BaseQueue {
-	constructor() {
-		super('emails')
-		this.processJob('sendEmail', 5, emailWorker.addNotificationEmail)
+export default class EmailQueue extends BaseQueue {
+	constructor(jobName: string, data: IEmailJob) {
+		super(jobName)
+		this.addEmailJob(jobName, data)
 	}
 
-	public addEmailJob(name: string, data: IEmailJob): void {
-		this.addJob(name, data)
+	public async addEmailJob(jobName: string, data: IEmailJob): Promise<void> {
+		await this.addJobToQueue(jobName, data)
+
+		addEmailToDBWorker(jobName)
 	}
 }
-
-export const emailQueue: EmailQueue = new EmailQueue

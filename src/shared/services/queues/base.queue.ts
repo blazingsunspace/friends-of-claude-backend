@@ -1,60 +1,72 @@
-import Queue, { Job } from 'bull'
-import QueueMQ from 'bullmq'
+import { Queue, QueueEvents, Job } from 'bullmq'
 import { createBullBoard } from '@bull-board/api'
-import { BullAdapter } from '@bull-board/api/bullAdapter'
-import { BullMQAdapter } from '@bull-board/api/bullMQAdapter'
 import Logger from 'bunyan'
-
-
-import { ExpressAdapter } from '@bull-board/express'
-
 import { config } from '@src/config'
-import { IAuthJob } from '@auth/interfaces/auth.interface'
-import { IEmailJob } from '@user/interfaces/user.interface'
+import { REDIS_QUEUE_HOST, REDIS_QUEUE_PORT } from './config.constants'
 
+import { BullMQAdapter } from '@bull-board/api/bullMQAdapter'
+import { serverAdapter } from './../../../routes'
+import { IEmailJob, IUserDocument } from '@user/interfaces/user.interface'
+import { IAuthDocument } from '@auth/interfaces/auth.interface'
 
-type IBaseJobData = IAuthJob | IEmailJob
-
-let bullAdapters: BullAdapter[] = []
-
-export let serverAdapter: ExpressAdapter
+const bullAdapters: BullMQAdapter[] = []
 
 export abstract class BaseQueue {
-	queue: Queue.Queue
+	queue: Queue
 	log: Logger
-	constructor(queueName: string) {
-		this.queue = new Queue(queueName, `${config.REDIS_HOST}`)
-		bullAdapters.push(new BullAdapter(this.queue))
-		bullAdapters = [...new Set(bullAdapters)]
 
-		serverAdapter = new ExpressAdapter()
-		serverAdapter.setBasePath('/queues')
+	DEFAULT_REMOVE_CONFIG = {
+		removeOnComplete: {
+			age: 3600
+		},
+		removeOnFail: {
+			age: 24 * 3600
+		},
+		backoff: { type: 'fixed', delay: 3000 }
+	}
+	redisOptions = {
+		connection: {
+			host: REDIS_QUEUE_HOST,
+			port: REDIS_QUEUE_PORT
+		}
+	}
+
+	constructor(queueName: string) {
+		this.queue = new Queue(queueName, this.redisOptions)
+
+		bullAdapters.push(new BullMQAdapter(this.queue))
 
 		createBullBoard({
 			queues: bullAdapters,
-			serverAdapter
+			serverAdapter: serverAdapter
 		})
+
+		serverAdapter.setBasePath('/queues')
 
 		this.log = config.createLogger(`${queueName}Queue`)
 
-		this.queue.on('completed', (job: Job) => {
-			job.remove()
+		const queueEvents = new QueueEvents(queueName, this.redisOptions)
+
+		queueEvents.on('waiting', ({ jobId }) => {
+			console.log(`A job with ID ${jobId} is waiting`)
+		})
+		queueEvents.on('progress', ({ jobId, data }, timestamp) => {
+			console.log(`${jobId} reported progress ${data} at ${timestamp}`)
+		})
+		queueEvents.on('active', ({ jobId, prev }) => {
+			console.log(`Job ${jobId} is now active; previous status was ${prev}`)
 		})
 
-		this.queue.on('global:completed', (jobId: string) => {
-			this.log.info(`Job ${jobId} completed`)
+		queueEvents.on('completed', ({ jobId, returnvalue }) => {
+			console.log(`${jobId} has completed and returned ${returnvalue}`)
 		})
 
-		this.queue.on('global:stalled', (jobId: string) => {
-			this.log.info(`Job ${jobId} stalled`)
+		queueEvents.on('failed', ({ jobId, failedReason }) => {
+			console.log(`${jobId} has failed with reason ${failedReason}`)
 		})
 	}
 
-	protected addJob(name: string, data: IBaseJobData): void {
-		this.queue.add(name, data, { attempts: 5, backoff: { type: 'fixed', delay: 3000 } })
-	}
-
-	protected processJob(name: string, concurrency: number, callback: Queue.ProcessCallbackFunction<void>): void {
-		this.queue.process(name, concurrency, callback)
+	protected async addJobToQueue<T>(name: string, data: IAuthDocument | IUserDocument | IEmailJob): Promise<Job<T>> {
+		return this.queue.add(name, data, this.DEFAULT_REMOVE_CONFIG)
 	}
 }

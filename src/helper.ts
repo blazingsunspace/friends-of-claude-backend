@@ -1,4 +1,4 @@
-'use strict'
+/* 'use strict'
 
 import { readdirSync, openSync, fstatSync } from 'fs'
 import { join } from 'path'
@@ -29,3 +29,4 @@ function getFiles(baseDir) {
 export default {
 	getFiles
 }
+ */

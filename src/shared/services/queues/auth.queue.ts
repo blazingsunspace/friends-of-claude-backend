@@ -1,16 +1,16 @@
-import { IAuthJob } from '@auth/interfaces/auth.interface'
+import { IAuthDocument } from '@auth/interfaces/auth.interface'
 import { BaseQueue } from '@services/queues/base.queue'
-import { authWorker } from '@workers/auth.worker'
+import { addAuthUserToDBWorker } from '@workers/auth.worker'
 
-class AuthQueue extends BaseQueue {
-	constructor() {
-		super('auth')
-		this.processJob('addAuthUserToDB', 5, authWorker.addAuthUserToDB)
+export default class AuthQueue extends BaseQueue {
+	constructor(jobName: string, data: IAuthDocument) {
+		super(jobName)
+		this.addAuthUserJob(jobName, data)
 	}
 
-	public addAuthUserJob(name: string, data: IAuthJob): void {
-		this.addJob(name, data)
+	public async addAuthUserJob(jobName: string, data: IAuthDocument): Promise<void> {
+		await this.addJobToQueue(jobName, data)
+
+		addAuthUserToDBWorker(jobName)
 	}
 }
-
-export const authQueue: AuthQueue = new AuthQueue()

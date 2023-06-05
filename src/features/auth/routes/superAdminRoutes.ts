@@ -1,5 +1,3 @@
-
-
 import { SetAdmin } from '@auth/controllers/superAdmin/set-admin-role'
 import { authMiddleware } from '@globals/helpers/auth-midleware'
 import express, { Router } from 'express'
@@ -12,7 +10,6 @@ class SuperAdminRoutes {
 	}
 
 	public routes(): Router {
-
 		this.router.post('/set-admin', authMiddleware.adminAuthentification, SetAdmin.prototype.read)
 
 		return this.router

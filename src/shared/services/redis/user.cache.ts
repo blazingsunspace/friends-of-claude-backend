@@ -5,7 +5,7 @@ import { config } from '@src/config'
 import { ServerError } from '@globals/helpers/error-handler'
 
 import { Helpers } from '@globals/helpers/helpers'
-import mongoose, { Date, Document } from 'mongoose'
+
 const log: Logger = config.createLogger('userCache')
 
 export class UserCache extends BaseCache {
@@ -14,7 +14,6 @@ export class UserCache extends BaseCache {
 	}
 
 	public async saveUserToCache(key: string, userUId: string, createUser: IUserDocument): Promise<void> {
-
 		const {
 			_id,
 			uId,
@@ -67,7 +66,7 @@ export class UserCache extends BaseCache {
 			'updatedAt',
 			`${updatedAt}`,
 			'deleted',
-			`${deleted}`,
+			`${deleted}`
 		]
 
 		const secondList: string[] = [
@@ -132,11 +131,10 @@ export class UserCache extends BaseCache {
 			if (!this.client.isOpen) {
 				await this.client.connect()
 			}
-		
+
 			const response: IUserDocument = (await this.client.HGETALL(`users:${userId}`)) as unknown as IUserDocument
-	
+
 			console.log(response, '444444444444', userId)
-			
 
 			response.postsCount = Helpers.parseJson(`${response.postsCount}`)
 			response.blocked = Helpers.parseJson(`${response.blocked}`)
@@ -157,6 +155,4 @@ export class UserCache extends BaseCache {
 			throw new ServerError('Server error, try again.44')
 		}
 	}
-
-
 }

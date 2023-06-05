@@ -1,6 +1,4 @@
-
-
-import  { Date, Document } from 'mongoose'
+import { Date, Document } from 'mongoose'
 import { ObjectId } from 'mongodb'
 import { IUserDocument } from '@user/interfaces/user.interface'
 
@@ -20,10 +18,17 @@ export interface AuthPayload {
 	role?: number
 	username?: string
 	avatarColor?: string
-	approvedByAdmin?:boolean
+	approvedByAdmin?: boolean
 	setPassword?: boolean
 	activatedByEmail?: boolean
 	iat?: number
+}
+
+export interface AuthPostgres {
+	email: string
+	role: string
+	username: string
+	password: string
 }
 
 export interface ActivateAccountDocument extends Document {
@@ -33,7 +38,6 @@ export interface ActivateAccountDocument extends Document {
 	activatedByEmail: boolean
 	accountActivationToken?: string
 	accountActivationExpires?: number | string
-
 }
 
 export interface IAuthDocument extends Document {
@@ -44,7 +48,6 @@ export interface IAuthDocument extends Document {
 	password?: string
 	role: number
 	avatarColor: string
-
 
 	nottifyMeIfUsedInDocumentary: boolean
 	listMeInDirectory: boolean
@@ -85,7 +88,7 @@ export interface ISignUpData {
 	nottifyMeIfUsedInDocumentary: boolean
 	listMeInDirectory: boolean
 	listMyTestemonials: boolean
-	imStatus:boolean
+	imStatus: boolean
 	accountActivationToken: string
 	accountActivationExpires: number
 	approvedByAdmin?: boolean

@@ -1,32 +1,37 @@
 import { currentUserRoutes } from '@auth/routes/currentRoutes'
 import { authRoutes } from '@auth/routes/authRoutes'
-import { serverAdapter } from '@services/queues/base.queue'
+
 import { Application } from 'express'
 import { authMiddleware } from '@globals/helpers/auth-midleware'
 import { adminRoutes } from '@auth/routes/adminRoutes'
 import { superAdminRoutes } from '@auth/routes/superAdminRoutes'
-
+import { ExpressAdapter } from '@bull-board/express'
 const BASE_PATH = '/api/v1'
 
-export default (app: Application) => {
-	const routes = () => {
-		// Enabling trust proxy
+export let serverAdapter: ExpressAdapter
+// eslint-disable-next-line prefer-const
+serverAdapter = new ExpressAdapter()
+serverAdapter.setBasePath('/admin/queues')
 
+export class ApplicationRoutes {
+	app: Application
+	constructor(app: Application) {
+		this.app = app
+		this.routes()
+	}
 
-		app.use('/queues', serverAdapter.getRouter())
+	protected routes() {
+		this.app.use('/queues', serverAdapter.getRouter())
 
-		app.use(BASE_PATH, authRoutes.routes())
-		app.use(BASE_PATH, authRoutes.signOutRoute())
+		this.app.use(BASE_PATH, authRoutes.routes())
+		this.app.use(BASE_PATH, authRoutes.signOutRoute())
 
 		//authenticated routes
-		app.use(BASE_PATH, currentUserRoutes.routes())
-		app.use(BASE_PATH, authMiddleware.verifyUser, adminRoutes.routes())
+		this.app.use(BASE_PATH, currentUserRoutes.routes())
+		this.app.use(BASE_PATH, authMiddleware.verifyUser, adminRoutes.routes())
 
 		//super admin routes
 
-		app.use(BASE_PATH, authMiddleware.verifyUser, superAdminRoutes.routes())
+		this.app.use(BASE_PATH, authMiddleware.verifyUser, superAdminRoutes.routes())
 	}
-
-	routes()
-
 }

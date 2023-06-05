@@ -1,4 +1,3 @@
-
 import { ApproveAccountCreation } from '@auth/controllers/admin/approve-account-creation'
 import { DispproveAccountCreation } from '@auth/controllers/admin/disapprove-account-creation'
 import { GetAccountCreationRequests } from '@auth/controllers/admin/get-account-creation-requests'
@@ -13,7 +12,11 @@ class AdminRoutes {
 	}
 
 	public routes(): Router {
-		this.router.get('/get-approved-acounts-list', authMiddleware.adminAuthentification, GetAccountCreationRequests.prototype.getApprovedAccountsList)
+		this.router.get(
+			'/get-approved-acounts-list',
+			authMiddleware.adminAuthentification,
+			GetAccountCreationRequests.prototype.getApprovedAccountsList
+		)
 		this.router.get('/get-account-creation-request-list', authMiddleware.adminAuthentification, GetAccountCreationRequests.prototype.read)
 		this.router.post('/approve-account-creation', authMiddleware.adminAuthentification, ApproveAccountCreation.prototype.read)
 		this.router.post('/disapprove-account-creation', authMiddleware.adminAuthentification, DispproveAccountCreation.prototype.read)

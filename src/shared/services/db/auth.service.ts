@@ -4,35 +4,34 @@ import { AuthModel } from '@auth/models/auth.schema'
 import { config } from '@src/config'
 import Logger from 'bunyan'
 import mongoose from 'mongoose'
-import { UserModel } from '@user/models/user.schema'
+
 const log: Logger = config.createLogger('authService')
 class AuthService {
-
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private async doTransaction(callback: any): Promise<void> {
 		try {
 			let session: mongoose.mongo.ClientSession | null = null
 			return AuthModel.createCollection()
 				.then(() => AuthModel.startSession())
-				.then(async _session => {
+				.then(async (_session) => {
 					session = _session
 					// Start a transaction
 					session.startTransaction()
 					// This `create()` is part of the transaction because of the `session`
 					// option.
 					await callback()
-
 				})
 				.then(() => session?.commitTransaction())
 				.then(() => session?.endSession())
-
 		} catch (error) {
 			log.error(error, 'Mongo db could not finish transaction (add user data to mongo db)')
 		}
 	}
 
 	public async createAuthUser(data: IAuthDocument): Promise<void> {
-		AuthService.prototype.doTransaction(async () => { await AuthModel.create(data) })
-
+		AuthService.prototype.doTransaction(async () => {
+			await AuthModel.create(data)
+		})
 	}
 
 	public async updatePasswordToken(authId: string, token: string, tokenExpiration: number): Promise<void> {
@@ -47,11 +46,9 @@ class AuthService {
 				}
 			).exec()
 		})
-
 	}
 
 	public async updateAccountActivationToken(_id: string, token: string, tokenExpiration: number): Promise<void> {
-
 		AuthService.prototype.doTransaction(async () => {
 			await AuthModel.updateOne(
 				{
@@ -63,40 +60,27 @@ class AuthService {
 				}
 			).exec()
 		})
-
 	}
 
 	public async getUserByPasswordTokenAndUId(token: string, uId: string): Promise<IAuthDocument> {
-
-
 		const user: IAuthDocument = (await AuthModel.findOne({
 			passwordResetToken: token,
 			uId: uId,
-			passwordResetExpires: { $gt: new Date().getTime() },
-
-
+			passwordResetExpires: { $gt: new Date().getTime() }
 		}).exec()) as IAuthDocument
 
 		return user
 	}
 
-
 	public async getUserByAccountActivationTokenAndUId(token: string, uId: string): Promise<IAuthDocument> {
-
-		const user: IAuthDocument = await AuthModel.findOne(
-			{
-				accountActivationToken: token,
-				uId: uId,
-				accountActivationExpires: { $gt: new Date().getTime() },
-
-
-			}).exec() as IAuthDocument
-
-
+		const user: IAuthDocument = (await AuthModel.findOne({
+			accountActivationToken: token,
+			uId: uId,
+			accountActivationExpires: { $gt: new Date().getTime() }
+		}).exec()) as IAuthDocument
 
 		return user
 	}
-
 
 	public async getUserByUsernameOrEmail(username: string, email: string): Promise<IAuthDocument> {
 		const query = {
@@ -118,7 +102,6 @@ class AuthService {
 		return user
 	}
 
-
 	public async getAuthUserById(_id: string): Promise<IAuthDocument> {
 		const user: IAuthDocument = (await AuthModel.findOne({ _id: _id }).exec()) as IAuthDocument
 		return user
@@ -128,7 +111,6 @@ class AuthService {
 		const user: AuthPayload = (await AuthModel.findOne({ _id: _id }).exec()) as AuthPayload
 		return user
 	}
-
 }
 
 export const authService: AuthService = new AuthService()

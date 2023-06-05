@@ -10,24 +10,22 @@ import Logger from 'bunyan'
 const log: Logger = config.createLogger('userService')
 
 class UserService {
-
+	// eslint-disable-next-line @typescript-eslint/no-explicit-any
 	private async doTransaction(callback: any): Promise<void> {
 		try {
 			let session: mongoose.mongo.ClientSession | null = null
 			return AuthModel.createCollection()
 				.then(() => AuthModel.startSession())
-				.then(async _session => {
+				.then(async (_session) => {
 					session = _session
 					// Start a transaction
 					session.startTransaction()
 					// This `create()` is part of the transaction because of the `session`
 					// option.
 					await callback()
-
 				})
 				.then(() => session?.commitTransaction())
 				.then(() => session?.endSession())
-
 		} catch (error) {
 			log.error(error, 'Mongo db could not finish transaction (add user data to mongo db)')
 		}
@@ -37,41 +35,41 @@ class UserService {
 		UserService.prototype.doTransaction(async () => {
 			await UserModel.create(data)
 		})
-
-
-
-
 	}
 
 	public async getAccountCreationRequests(): Promise<IAuthDocument> {
-		const users: IAuthDocument = await AuthModel.find({ approvedByAdmin: false }).exec() as unknown as IAuthDocument
+		const users: IAuthDocument = (await AuthModel.find({ approvedByAdmin: false }).exec()) as unknown as IAuthDocument
 
 		return users
 	}
 	public async getApprovedAccountsList(): Promise<IAuthDocument> {
-		const users: IAuthDocument = await AuthModel.find({ approvedByAdmin: true, role : { $nin : [2,5]} }).exec() as unknown as IAuthDocument
+		const users: IAuthDocument = (await AuthModel.find({
+			approvedByAdmin: true,
+			role: { $nin: [2, 5] }
+		}).exec()) as unknown as IAuthDocument
 
 		return users
 	}
-	
 
 	public async approveUser(_id: string) {
-		UserService.prototype.doTransaction(async () => { await AuthModel.updateOne({ _id: _id }, { approvedByAdmin: true }).exec() })
+		UserService.prototype.doTransaction(async () => {
+			await AuthModel.updateOne({ _id: _id }, { approvedByAdmin: true }).exec()
+		})
 	}
 
 	public async setAdmin(_id: string) {
-		UserService.prototype.doTransaction(async () => { await AuthModel.updateOne({ _id: _id }, { role: 2 }).exec() })
-
-
+		UserService.prototype.doTransaction(async () => {
+			await AuthModel.updateOne({ _id: _id }, { role: 2 }).exec()
+		})
 	}
 
 	public async disapproveUser(_id: string) {
-		UserService.prototype.doTransaction(async () => { await AuthModel.updateOne({ _id: _id }, { approvedByAdmin: false }).exec() })
-
+		UserService.prototype.doTransaction(async () => {
+			await AuthModel.updateOne({ _id: _id }, { approvedByAdmin: false }).exec()
+		})
 	}
 
 	public async getUserById(userId: string): Promise<IUserDocument> {
-
 		const users: IUserDocument[] = await UserModel.aggregate([
 			{ $match: { _id: new mongoose.Types.ObjectId(userId) } },
 			{ $lookup: { from: 'Auth', localField: 'authId', foreignField: '_id', as: 'authId' } },
@@ -124,7 +122,7 @@ class UserService {
 			profilePicture: 1,
 			createdAt: 1,
 			updatedAt: 1,
-			deleted: 1,
+			deleted: 1
 		}
 	}
 }

@@ -6,8 +6,6 @@ class AccountCreatedByAdminTemplate {
 	public accountCreatedByAdminTemplateTemplate(templateParams: IAccountActivateParams): string {
 		const { username, activateLink } = templateParams
 
-
-
 		return ejs.render(fs.readFileSync(__dirname + '/account-created-by-admin-template.ejs', 'utf8'), {
 			username,
 			activateLink,

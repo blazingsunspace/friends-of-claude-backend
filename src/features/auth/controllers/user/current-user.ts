@@ -13,12 +13,9 @@ export class CurrentUser {
 		let token = null
 		let user = null
 
-		
-
 		const cachedUser: IUserDocument = (await userCache.getUserFromCache(`${req.currentUser!.authId}`)) as IUserDocument
 
 		const existingUser: IUserDocument = cachedUser ? cachedUser : await userService.getUserById(`${req.currentUser!._id}`)
-
 
 		if (Object.keys(existingUser).length) {
 			isUser = true

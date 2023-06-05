@@ -1,13 +1,12 @@
-
 import { hash, compare } from 'bcryptjs'
 import { IAuthDocument } from '@auth/interfaces/auth.interface'
 import { model, Model, Schema } from 'mongoose'
 
-
 const SALT_ROUND = 10
 
-const authSchema: Schema = new Schema(
+const authSchema: Schema = new Schema<IAuthDocument>(
 	{
+		_id: { type: String, required: true, index: true },
 		username: { type: String },
 		uId: { type: String },
 		email: { type: String },
@@ -52,7 +51,6 @@ const authSchema: Schema = new Schema(
 )
 
 authSchema.pre('save', async function (this: IAuthDocument, next: () => void) {
-
 	const hashedPassword: string = await hash(this.password as string, SALT_ROUND)
 
 	this.password = hashedPassword
@@ -62,7 +60,6 @@ authSchema.pre('save', async function (this: IAuthDocument, next: () => void) {
 
 authSchema.methods.comparePassword = async function (password: string): Promise<boolean> {
 	const hashedPassword: string = (this as unknown as IAuthDocument).password!
-
 
 	return compare(password, hashedPassword)
 }
