@@ -25,6 +25,7 @@ import path from 'path'
 
 const SERVER_PORT = config.SERVER_PORT
 const log: Logger = config.createLogger('server')
+import bodyParser from 'body-parser'
 
 const options = {
 	key: readFileSync(path.join(__dirname + './../host.key')),
@@ -59,6 +60,9 @@ export class ChattyServer {
 		app.set('trust proxy', true)
 		app.use(hpp())
 		app.use(helmet())
+		app.use(bodyParser.json({
+			type: '*/*'
+		}))
 		app.use(
 			cors({
 				origin: '*' /* config.CLIENT_URL */,
@@ -93,12 +97,8 @@ export class ChattyServer {
 
 	private async startServer(app: Application): Promise<void> {
 		try {
-			/* const httpServer: http2.Http2SecureServer = http2.createSecureServer(options, app) */
 
 			const server: spdy.server.Server = spdy.createServer(options, app)
-
-			/* var server = spdy.createSer */ /* ver(options, app) */
-			/* server.listen(SERVER_PORT ) */
 			const socketIO: Server = await this.createSocketIO(server)
 			this.startHttpServer(server)
 			this.socketIOConnections(socketIO)

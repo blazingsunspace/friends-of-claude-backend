@@ -12,9 +12,9 @@ import { userService } from '@services/db/user.service'
 
 export class SignIn {
 	public async read(req: Request, res: Response): Promise<void> {
-		const { password, email } = req.body
+		const { password,  username} = req.body
 
-		const existingUser: IAuthDocument = await authService.getUserByUsernameOrEmail(email, email)
+		const existingUser: IAuthDocument = await authService.getUserByUsername(username)
 
 		if (!existingUser) {
 			throw new BadRequestError('Invalid credentials1')
@@ -42,6 +42,7 @@ export class SignIn {
 			config.JWT_TOKEN!
 		)
 
+
 		req.session = { jwt: userJwt }
 
 		const userDocuments: IUserDocument = {
@@ -54,6 +55,6 @@ export class SignIn {
 			createdAt: existingUser.createdAt
 		} as IUserDocument
 
-		res.status(HTTP_STATUS.OK).json({ message: 'user login succesfuly', user: userDocuments, token: userJwt })
+		res.status(HTTP_STATUS.OK).json({ message: 'user login succesfuly',user: userDocuments, token: userJwt })
 	}
 }

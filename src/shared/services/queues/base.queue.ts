@@ -7,7 +7,7 @@ import { REDIS_QUEUE_HOST, REDIS_QUEUE_PORT } from './config.constants'
 import { BullMQAdapter } from '@bull-board/api/bullMQAdapter'
 import { serverAdapter } from './../../../routes'
 import { IEmailJob, IUserDocument } from '@user/interfaces/user.interface'
-import { IAuthDocument } from '@auth/interfaces/auth.interface'
+import { IAuthDocument, IAuthUpdate } from '@auth/interfaces/auth.interface'
 
 const bullAdapters: BullMQAdapter[] = []
 
@@ -48,25 +48,25 @@ export abstract class BaseQueue {
 		const queueEvents = new QueueEvents(queueName, this.redisOptions)
 
 		queueEvents.on('waiting', ({ jobId }) => {
-			console.log(`A job with ID ${jobId} is waiting`)
+			console.info(`A job with ID ${jobId} is waiting`)
 		})
 		queueEvents.on('progress', ({ jobId, data }, timestamp) => {
-			console.log(`${jobId} reported progress ${data} at ${timestamp}`)
+			console.info(`${jobId} reported progress ${data} at ${timestamp}`)
 		})
 		queueEvents.on('active', ({ jobId, prev }) => {
-			console.log(`Job ${jobId} is now active; previous status was ${prev}`)
+			console.info(`Job ${jobId} is now active; previous status was ${prev}`)
 		})
 
 		queueEvents.on('completed', ({ jobId, returnvalue }) => {
-			console.log(`${jobId} has completed and returned ${returnvalue}`)
+			console.info(`${jobId} has completed and returned ${returnvalue}`)
 		})
 
 		queueEvents.on('failed', ({ jobId, failedReason }) => {
-			console.log(`${jobId} has failed with reason ${failedReason}`)
+			console.info(`${jobId} has failed with reason ${failedReason}`)
 		})
 	}
 
-	protected async addJobToQueue<T>(name: string, data: IAuthDocument | IUserDocument | IEmailJob): Promise<Job<T>> {
+	protected async addJobToQueue<T>(name: string, data: IAuthDocument | IUserDocument | IEmailJob | IAuthUpdate): Promise<Job<T>> {
 		return this.queue.add(name, data, this.DEFAULT_REMOVE_CONFIG)
 	}
 }

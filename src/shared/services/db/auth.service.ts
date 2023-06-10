@@ -1,4 +1,5 @@
-import { AuthPayload, IAuthDocument } from '@auth/interfaces/auth.interface'
+
+import { AuthPayload, IAuthDocument, IAuthUpdate } from '@auth/interfaces/auth.interface'
 import { Helpers } from '@globals/helpers/helpers'
 import { AuthModel } from '@auth/models/auth.schema'
 import { config } from '@src/config'
@@ -28,39 +29,99 @@ class AuthService {
 		}
 	}
 
+	public async updateAuthUserToDB(data: IAuthUpdate): Promise<void> {
+		AuthService.prototype.doTransaction(async () => {
+
+			switch (data.pointer) {
+				case 'accountActivation':
+					await AuthModel.updateOne(
+						{
+							accountActivationToken: data.updateWhere.accountActivationToken,
+							uId: data.updateWhere.uId,
+							accountActivationExpires: { $gt: new Date().getTime() }
+						},
+						{
+							activatedByEmail: data.updateWhat?.activatedByEmail,
+							accountActivationToken: data.updateWhat?.accountActivationToken,
+							accountActivationExpires: data.updateWhat?.accountActivationExpires
+						}
+					).exec()
+					break
+
+				case 'setNewPassword':
+					await AuthModel.updateOne(
+						{
+							_id: data.updateWhere._id
+						},
+						{
+							passwordResetToken: data.updateWhat?.passwordResetToken,
+							passwordResetExpires: data.updateWhat?.passwordResetExpires,
+						}
+					).exec()
+					break
+
+				case 'setAdmin':
+
+
+					await AuthModel.updateOne(
+						{
+							_id: data.updateWhere._id
+						},
+						{
+							role: config.CONSTANTS.userRoles.admin
+						}
+					).exec()
+
+					break
+
+				case 'unsetAdmin':
+					await AuthModel.updateOne(
+						{
+							_id: data.updateWhere._id
+						},
+						{
+							role: config.CONSTANTS.userRoles.user
+						}
+					).exec()
+
+					break
+
+				case 'approveAccountCreation':
+					await AuthModel.updateOne(
+						{
+							_id: data.updateWhere._id
+						},
+						{
+							approvedByAdmin: true
+						}
+					).exec()
+
+					break
+
+				case 'disapproveAccountCreation':
+					await AuthModel.updateOne(
+						{
+							_id: data.updateWhere._id
+						},
+						{
+							approvedByAdmin: false
+						}
+					).exec()
+
+					break
+
+			}
+
+
+		})
+	}
+
 	public async createAuthUser(data: IAuthDocument): Promise<void> {
 		AuthService.prototype.doTransaction(async () => {
 			await AuthModel.create(data)
 		})
 	}
 
-	public async updatePasswordToken(authId: string, token: string, tokenExpiration: number): Promise<void> {
-		AuthService.prototype.doTransaction(async () => {
-			await AuthModel.updateOne(
-				{
-					_id: authId
-				},
-				{
-					passwordResetToken: token,
-					passwordResetExpires: tokenExpiration
-				}
-			).exec()
-		})
-	}
-
-	public async updateAccountActivationToken(_id: string, token: string, tokenExpiration: number): Promise<void> {
-		AuthService.prototype.doTransaction(async () => {
-			await AuthModel.updateOne(
-				{
-					_id: _id
-				},
-				{
-					accountActivationToken: token,
-					accountActivationExpires: tokenExpiration
-				}
-			).exec()
-		})
-	}
 
 	public async getUserByPasswordTokenAndUId(token: string, uId: string): Promise<IAuthDocument> {
 		const user: IAuthDocument = (await AuthModel.findOne({
@@ -82,14 +143,25 @@ class AuthService {
 		return user
 	}
 
-	public async getUserByUsernameOrEmail(username: string, email: string): Promise<IAuthDocument> {
-		const query = {
-			$or: [{ username: Helpers.firstLetterUppercase(username) }, { email: Helpers.lowerCase(email) }]
+	public async getUserByUsername(username: string): Promise<IAuthDocument> {
+
+
+
+
+		const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((([a-zA-Z\-0-9])+\.+[a-zA-Z]{2,}))$/
+		const ok = re.test(username)
+
+
+
+		if (ok) {
+
+
+			return (await AuthModel.findOne({ email: username }).exec()) as IAuthDocument
 		}
 
-		const user: IAuthDocument = (await AuthModel.findOne(query).exec()) as IAuthDocument
+		return (await AuthModel.findOne({ username }).exec()) as IAuthDocument
 
-		return user
+
 	}
 
 	public async getAuthUserByUsername(username: string): Promise<IAuthDocument> {

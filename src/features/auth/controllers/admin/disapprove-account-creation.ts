@@ -9,10 +9,11 @@ import Logger from 'bunyan'
 import { config } from '@src/config'
 import { BadRequestError } from '@globals/helpers/error-handler'
 import { authService } from '@services/db/auth.service'
-import { IAuthDocument } from '@auth/interfaces/auth.interface'
+import { IAuthDocument, IAuthUpdate } from '@auth/interfaces/auth.interface'
 import EmailQueue from '@services/queues/email.queue'
 import { dispproveAccountCreation } from '@services/emails/templates/disapprove-account-creation/disapprove-account-creation'
 import { IAccountDisapproveParams } from '@user/interfaces/user.interface'
+import UpdateAuthQueue from '@services/queues/update-auth'
 
 const log: Logger = config.createLogger('disapproveAccount')
 
@@ -26,11 +27,20 @@ export class DispproveAccountCreation {
 		const existingUser: IAuthDocument = await authService.getAuthUserById(_id)
 
 		if (!existingUser?.approvedByAdmin) {
-			throw new BadRequestError('user allready disapproved')
+			throw new BadRequestError('user allready is not approved')
 		}
 
 		try {
-			await userService.disapproveUser(_id)
+
+			const query: IAuthUpdate = {
+				updateWhere: {
+					_id: _id
+				},
+				pointer: 'disapproveAccountCreation'
+			}
+
+			new UpdateAuthQueue('updateAuthUserToDB', query)
+
 		} catch (error) {
 			log.error('disapprove account creation error')
 		}

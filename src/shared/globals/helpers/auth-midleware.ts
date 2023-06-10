@@ -7,6 +7,7 @@ import { authService } from '@services/db/auth.service'
 import { IUserDocument } from '@user/interfaces/user.interface'
 import { userService } from '@services/db/user.service'
 
+
 export class AuthMiddleware {
 	public async verifyUser(req: Request, _res: Response, next: NextFunction): Promise<void> {
 		if (!req.session?.jwt) {
@@ -14,14 +15,19 @@ export class AuthMiddleware {
 		}
 
 		try {
-			const payload: AuthPayload = JWT.verify(req.session?.jwt, config.JWT_TOKEN!) as AuthPayload
 
-			const existingUser: AuthPayload = await authService.getAuthUserById2(`${payload._id}`)
+			if (req.headers?.authorization) {
+				const payload: AuthPayload = JWT.verify(req.headers.authorization.split(' ')[1], config.JWT_TOKEN!) as AuthPayload
 
-			const existingUser2: IUserDocument = await userService.getUserByAuthId(`${payload._id}`)
-			existingUser.authId = existingUser2._id
+				const existingUser: AuthPayload = await authService.getAuthUserById2(`${payload._id}`)
 
-			req.currentUser = existingUser
+				const existingUser2: IUserDocument = await userService.getUserByAuthId(`${payload._id}`)
+				existingUser.authId = existingUser2._id
+
+
+				req.currentUser = existingUser
+			}
+
 		} catch (error) {
 			throw new NotAuthorizedError('Token is invalid. Please login again')
 		}
@@ -48,7 +54,7 @@ export class AuthMiddleware {
 	public async adminAuthentification(req: Request, _res: Response, next: NextFunction): Promise<void> {
 		const existingUser: IAuthDocument = await authService.getAuthUserById(`${req.currentUser?._id}`)
 
-		if (existingUser?.role !== 2 && existingUser?.role !== 5) {
+		if (existingUser?.role !== config.CONSTANTS.userRoles.admin && existingUser?.role !== config.CONSTANTS.userRoles.superAdmin) {
 			throw new NotAuthorizedError('This is admin space')
 		}
 
@@ -58,7 +64,7 @@ export class AuthMiddleware {
 	public async superAuthentification(req: Request, _res: Response, next: NextFunction): Promise<void> {
 		const existingUser: IAuthDocument = await authService.getAuthUserById(`${req.currentUser?._id}`)
 
-		if (existingUser?.role !== 5) {
+		if (existingUser?.role !== config.CONSTANTS.userRoles.superAdmin) {
 			throw new NotAuthorizedError('This is super admin space')
 		}
 

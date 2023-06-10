@@ -39,6 +39,28 @@ export interface ActivateAccountDocument extends Document {
 	accountActivationToken?: string
 	accountActivationExpires?: number | string
 }
+export interface IAuthUpdate {
+	updateWhere: IUpdateAuthActivationUpdateWhere,
+	updateWhat?: IUpdateAuthActivationUpdateWhat,
+	pointer: string
+}
+
+export interface IUpdateAuthActivationUpdateWhere {
+
+	_id?: string,
+
+	uId?: string
+	accountActivationToken?: string
+}
+export interface IUpdateAuthActivationUpdateWhat {
+	activatedByEmail?: boolean
+	accountActivationToken?: string
+	accountActivationExpires?: number
+
+	passwordResetToken?: string,
+	passwordResetExpires?: number
+
+}
 
 export interface IAuthDocument extends Document {
 	_id: string | ObjectId

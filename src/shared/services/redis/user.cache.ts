@@ -134,7 +134,7 @@ export class UserCache extends BaseCache {
 
 			const response: IUserDocument = (await this.client.HGETALL(`users:${userId}`)) as unknown as IUserDocument
 
-			console.log(response, '444444444444', userId)
+
 
 			response.postsCount = Helpers.parseJson(`${response.postsCount}`)
 			response.blocked = Helpers.parseJson(`${response.blocked}`)

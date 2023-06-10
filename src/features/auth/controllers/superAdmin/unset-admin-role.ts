@@ -1,6 +1,5 @@
 import HTTP_STATUS from 'http-status-codes'
 
-import { userService } from '@services/db/user.service'
 
 import { Request, Response } from 'express'
 
@@ -17,19 +16,20 @@ import { IAccountPromotedToAdmin } from '@user/interfaces/user.interface'
 
 import { accountPromotedToAdminTemplate } from '@services/emails/templates/account-promtoed-to-admin/account-promtoed-to-admin-template'
 import UpdateAuthQueue from '@services/queues/update-auth'
+import { accountUnPromotedToAdminTemplate } from '@services/emails/templates/account-un-promtoed-to-admin/account-un-promtoed-to-admin-template'
 
 const log: Logger = config.createLogger('approveAccount')
 
-export class SetAdmin {
+export class UnSetAdmin {
 	public async read(req: Request, res: Response): Promise<void> {
 		const { _id } = req.body
 
 		if (!_id) {
-			throw new BadRequestError('can not add admin role to account if you do not send id')
+			throw new BadRequestError('can not unset admin role to account if you do not send id')
 		}
 
 		if (!ObjectId.isValid(_id)) {
-			throw new BadRequestError('id for setting admin is not in right format')
+			throw new BadRequestError('id for un settting admin is not in right format')
 		}
 
 		const existingUser: IAuthDocument = await authService.getAuthUserById(_id)
@@ -38,8 +38,8 @@ export class SetAdmin {
 			throw new BadRequestError('no existing user with that id')
 		}
 
-		if (existingUser?.role === config.CONSTANTS.userRoles.admin) {
-			throw new BadRequestError('user allready admin3')
+		if (existingUser?.role !== config.CONSTANTS.userRoles.admin) {
+			throw new BadRequestError('user is not admin')
 		}
 
 		try {
@@ -47,13 +47,12 @@ export class SetAdmin {
 				updateWhere: {
 					_id: _id,
 				},
-				pointer: 'setAdmin'
+				pointer: 'unsetAdmin'
 			}
 			new UpdateAuthQueue('updateAuthUserToDB', query)
 
-			/* await userService.setAdmin(_id) */
 		} catch (error) {
-			log.error('sett admin to account error')
+			log.error('un sett admin to account error')
 		}
 
 
@@ -62,18 +61,18 @@ export class SetAdmin {
 			date: new Date().toISOString()
 		}
 
-		const template: string = accountPromotedToAdminTemplate.accountPromotedToAdminTemplate(templateParams)
+		const template: string = accountUnPromotedToAdminTemplate.accountUnPromotedToAdminTemplate(templateParams)
 
-		new EmailQueue('sendAccountSettedToAddmin', {
+		new EmailQueue('sendAccountUnSettedToAddmin', {
 			template,
 			receiverEmail: existingUser.email,
-			subject: 'Account setted to admin successfully 4220255'
+			subject: 'Account un setted from admin successfully 4220255'
 		})
 
 		res.status(HTTP_STATUS.OK).json({
-			message: 'user successfully setted to admin',
+			message: 'user successfully un setted to admin',
 			success: true,
-			info: `setted to admin user id: ${_id}`
+			info: `un setted from admin user id: ${_id}`
 		})
 	}
 }

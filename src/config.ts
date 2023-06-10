@@ -1,3 +1,4 @@
+
 import dotenv from 'dotenv'
 
 import cloudinary from 'cloudinary'
@@ -5,6 +6,30 @@ import cloudinary from 'cloudinary'
 import bunyan from 'bunyan'
 
 dotenv.config({})
+
+interface constants {
+	userRoles: userRoles
+}
+
+interface userRoles {
+	user: number
+	shopUser: number
+	videoContributor: number
+	admin: number
+	superAdmin: number
+}
+
+const constants: constants = {
+	userRoles: {
+		user: 1,
+		shopUser: 2,
+		videoContributor: 3,
+		admin: 4,
+		superAdmin: 5
+	}
+
+}
+
 
 class Config {
 	public DATABASE_URL: string | ''
@@ -22,6 +47,8 @@ class Config {
 	public SENDER_EMAIL_PASSWORD: string | undefined
 	public SENDGRID_API_KEY: string | undefined
 	public SENDGRID_SENDER: string | undefined
+
+	public CONSTANTS: constants
 
 	private readonly DEFAULT_DATABASE_URL = 'mongodb://localhost:27017/chatty-backend'
 
@@ -42,6 +69,8 @@ class Config {
 		this.SENDER_EMAIL_PASSWORD = process.env.SENDER_EMAIL_PASSWORD || ''
 		this.SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || ''
 		this.SENDGRID_SENDER = process.env.SENDGRID_SENDER || ''
+
+		this.CONSTANTS = constants
 	}
 
 	public createLogger(name: string): bunyan {

@@ -27,7 +27,7 @@ export class ApplicationRoutes {
 		this.app.use(BASE_PATH, authRoutes.signOutRoute())
 
 		//authenticated routes
-		this.app.use(BASE_PATH, currentUserRoutes.routes())
+		this.app.use(BASE_PATH, authMiddleware.verifyUser, currentUserRoutes.routes())
 		this.app.use(BASE_PATH, authMiddleware.verifyUser, adminRoutes.routes())
 
 		//super admin routes

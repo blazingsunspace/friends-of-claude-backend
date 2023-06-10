@@ -4,7 +4,7 @@ import { Request, Response } from 'express'
 
 import { IAuthDocument, ISignUpData } from '@auth/interfaces/auth.interface'
 import { authService } from '@services/db/auth.service'
-import { BadRequestError, NotAcceptableError } from '@globals/helpers/error-handler'
+import { BadRequestError, NotAcceptableError, UserDidNotAcceptTermsAndConditions } from '@globals/helpers/error-handler'
 import { Helpers } from '@globals/helpers/helpers'
 import { UploadApiResponse } from 'cloudinary'
 import { uploads } from '@globals/helpers/cloudinary-upload'
@@ -22,12 +22,19 @@ import EmailQueue from '@services/queues/email.queue'
 import crypto from 'crypto'
 
 import { accountCreatedByAdminTemplate } from '@services/emails/templates/account-created-by-admin/account-created-by-admin-template'
-import { PrismaClient } from '@prisma/client'
+
 import AuthQueue from '@services/queues/auth.queue'
+
+import { joiValidation } from '@globals/decorators/joi-validation.decorators'
+import { signupSchema } from '@auth/schemes/signup'
+
 const userCache: UserCache = new UserCache()
 
 export class SignUp {
+
+	@joiValidation(signupSchema)
 	public async create(req: Request, res: Response): Promise<void> {
+
 		const {
 			username,
 			email,
@@ -37,10 +44,17 @@ export class SignUp {
 			nottifyMeIfUsedInDocumentary,
 			listMeInDirectory,
 			listMyTestemonials,
-			imStatus
+			imStatus,
+			acceptTermsAndConditions
 		} = req.body
 
-		const checkIfUserExist: IAuthDocument = await authService.getUserByUsernameOrEmail(username, email)
+
+		if (!acceptTermsAndConditions) {
+			throw new UserDidNotAcceptTermsAndConditions('User did not accepted terms and conditions')
+		}
+
+		const checkIfUserExist: IAuthDocument = await authService.getUserByUsername(username)
+
 		if (checkIfUserExist) {
 			throw new NotAcceptableError('User Allready Exist')
 		}
@@ -177,8 +191,8 @@ export class SignUp {
 		return {
 			_id,
 			uId,
-			username: Helpers.firstLetterUppercase(username),
-			email: Helpers.lowerCase(email),
+			username: username,
+			email: email,
 			password,
 			avatarColor,
 			nottifyMeIfUsedInDocumentary,
@@ -210,7 +224,7 @@ export class SignUp {
 			_id: userObjectId,
 			authId: _id,
 			uId,
-			username: Helpers.firstLetterUppercase(username),
+			username: username,
 			email,
 			password,
 			avatarColor,

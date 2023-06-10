@@ -9,11 +9,12 @@ import Logger from 'bunyan'
 import { config } from '@src/config'
 import { BadRequestError } from '@globals/helpers/error-handler'
 import { authService } from '@services/db/auth.service'
-import { IAuthDocument } from '@auth/interfaces/auth.interface'
+import { IAuthDocument, IAuthUpdate } from '@auth/interfaces/auth.interface'
 import EmailQueue from '@services/queues/email.queue'
 
 import { IAccountApproveParams } from '@user/interfaces/user.interface'
 import { approveAccountCreation } from '@services/emails/templates/approve-account-creation/approve-account-creation'
+import UpdateAuthQueue from '@services/queues/update-auth'
 
 const log: Logger = config.createLogger('approveAccount')
 
@@ -31,7 +32,16 @@ export class ApproveAccountCreation {
 		}
 
 		try {
-			await userService.approveUser(_id)
+
+			const query: IAuthUpdate = {
+				updateWhere: {
+					_id: _id
+				},
+				pointer: 'approveAccountCreation'
+			}
+
+			new UpdateAuthQueue('updateAuthUserToDB', query)
+
 		} catch (error) {
 			log.error('approve account creation error')
 		}

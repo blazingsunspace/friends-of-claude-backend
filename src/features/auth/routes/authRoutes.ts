@@ -1,4 +1,5 @@
 import { Password } from '@auth/controllers/user/password'
+import { ActivateAccount } from '@auth/controllers/user/activate-account'
 import { SignIn } from '@auth/controllers/user/signin'
 import { SignOut } from '@auth/controllers/user/signout'
 import { SignUp } from '@auth/controllers/user/signup'
@@ -43,8 +44,8 @@ class AuthRoutes {
 		)
 		this.router.post('/forgot-password', Password.prototype.create)
 		this.router.post('/reset-password/:uId/:token', Password.prototype.update)
-		this.router.post('/activate-account/:uId/:token', Password.prototype.activate)
-		this.router.post('/activate-acount-and-set-password/:uId/:token', Password.prototype.activate)
+		this.router.post('/activate-account/:uId/:token', ActivateAccount.prototype.activate)
+		this.router.post('/activate-acount-and-set-password/:uId/:token', ActivateAccount.prototype.activate)
 		return this.router
 	}
 
