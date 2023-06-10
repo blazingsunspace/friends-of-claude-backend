@@ -6,11 +6,11 @@
 		],
 	},
 	"compilerOptions": {
-		"target": "es2015",
+		"target": "ESNext",
 		"module": "commonjs",
 		"lib": [
 			"DOM",
-			"ES2015"
+			"ESNext"
 		],
 		"baseUrl": "./",
 		"outDir": "./build",
@@ -56,9 +56,13 @@
 			"@workers/*": [
 				"src/shared/workers/*"
 			],
-			"@root/*": [
+			"@src/*": [
 				"src/*"
+			],
+			"@root/*": [
+				"*"
 			]
+			
 		}
 	}
 }

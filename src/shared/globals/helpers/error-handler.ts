@@ -29,7 +29,6 @@ export abstract class CustomError extends Error {
 		}
 	}
 }
-
 export class JoiRequestValidationError extends CustomError {
 	statusCode = HTTP_STATUS.BAD_REQUEST
 	status = 'vallidation error'
@@ -38,10 +37,18 @@ export class JoiRequestValidationError extends CustomError {
 		super(message)
 	}
 }
-
 export class BadRequestError extends CustomError {
 	statusCode = HTTP_STATUS.BAD_REQUEST
 	status = 'error'
+
+	constructor(message: string) {
+		super(message)
+	}
+}
+
+export class UserDidNotAcceptTermsAndConditions extends CustomError {
+	statusCode = HTTP_STATUS.NOT_ACCEPTABLE
+	status = 'user did not accept terms and conditions'
 
 	constructor(message: string) {
 		super(message)

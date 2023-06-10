@@ -1,25 +1,31 @@
-import { DoneCallback, Job } from 'bull'
 import Logger from 'bunyan'
-import { config } from '@root/config'
-import { userService } from '@services/db/user.service'
+import { config } from '@src/config'
+
+import { Job, Worker } from 'bullmq'
+import { REDIS_QUEUE_HOST, REDIS_QUEUE_PORT } from '@services/queues/config.constants'
 
 const log: Logger = config.createLogger('userWorker')
+let worker: Worker
 
-class UserWorker {
-	async addUserToDB(job: Job, done: DoneCallback): Promise<void> {
-		try {
-			const { value } = job.data
+import jobProcessor from './jobs/addUserToDB'
+export async function addUserToDBWorker(jobName: string): Promise<void> {
+	worker = new Worker(jobName, jobProcessor, {
+		connection: {
+			host: REDIS_QUEUE_HOST,
+			port: REDIS_QUEUE_PORT
+		},
+		autorun: true
+	})
 
-			// add method to send data to database
-			await userService.addUserData(value)
+	worker.on('completed', (job: Job, returnvalue: 'DONE') => {
+		log.info(`Completed job with id ${job.id}`, returnvalue)
+	})
 
-			job.progress(100)
-			done(null, job.data)
-		} catch (error) {
-			log.error(error)
-			done(error as Error)
-		}
-	}
+	worker.on('active', (job: Job<unknown>) => {
+		log.info(`Completed job with id ${job.id}`)
+	})
+
+	worker.on('error', (failedReason: Error) => {
+		log.info('Job encountered an error', failedReason)
+	})
 }
-
-export const userWorker: UserWorker = new UserWorker()

@@ -1,4 +1,4 @@
-import { Document } from 'mongoose'
+import { Date, Document } from 'mongoose'
 import { ObjectId } from 'mongodb'
 import { IUserDocument } from '@user/interfaces/user.interface'
 
@@ -11,12 +11,55 @@ declare global {
 }
 
 export interface AuthPayload {
-	userId: string
-	uId: string
-	email: string
-	username: string
-	avatarColor: string
+	_id: string | ObjectId
+	authId?: string | ObjectId
+	uId?: string
+	email?: string
+	role?: number
+	username?: string
+	avatarColor?: string
+	approvedByAdmin?: boolean
+	setPassword?: boolean
+	activatedByEmail?: boolean
 	iat?: number
+}
+
+export interface AuthPostgres {
+	email: string
+	role: string
+	username: string
+	password: string
+}
+
+export interface ActivateAccountDocument extends Document {
+	uId: string
+	username: string
+	email: string
+	activatedByEmail: boolean
+	accountActivationToken?: string
+	accountActivationExpires?: number | string
+}
+export interface IAuthUpdate {
+	updateWhere: IUpdateAuthActivationUpdateWhere,
+	updateWhat?: IUpdateAuthActivationUpdateWhat,
+	pointer: string
+}
+
+export interface IUpdateAuthActivationUpdateWhere {
+
+	_id?: string,
+
+	uId?: string
+	accountActivationToken?: string
+}
+export interface IUpdateAuthActivationUpdateWhat {
+	activatedByEmail?: boolean
+	accountActivationToken?: string
+	accountActivationExpires?: number
+
+	passwordResetToken?: string,
+	passwordResetExpires?: number
+
 }
 
 export interface IAuthDocument extends Document {
@@ -25,10 +68,34 @@ export interface IAuthDocument extends Document {
 	username: string
 	email: string
 	password?: string
+	role: number
 	avatarColor: string
-	createdAt: Date
+
+	nottifyMeIfUsedInDocumentary: boolean
+	listMeInDirectory: boolean
+	listMyTestemonials: boolean
+
+	imStatus: boolean
+	uniqueUrlForLogin: string
+
+	lastTimeLogged: Date
+	isUploaded: object
+
+	approvedByAdmin: boolean
+
+	setPassword: boolean
+
+	activatedByEmail: boolean
+	accountActivationToken?: string
+	accountActivationExpires?: number | string
+
 	passwordResetToken?: string
 	passwordResetExpires?: number | string
+
+	createdAt: Date
+	updatedAt: Date
+	deleted: boolean
+
 	comparePassword(password: string): Promise<boolean>
 	hashPassword(password: string): Promise<string>
 }
@@ -40,6 +107,14 @@ export interface ISignUpData {
 	username: string
 	password: string
 	avatarColor: string
+	nottifyMeIfUsedInDocumentary: boolean
+	listMeInDirectory: boolean
+	listMyTestemonials: boolean
+	imStatus: boolean
+	accountActivationToken: string
+	accountActivationExpires: number
+	approvedByAdmin?: boolean
+	setPassword?: boolean
 }
 
 export interface IAuthJob {

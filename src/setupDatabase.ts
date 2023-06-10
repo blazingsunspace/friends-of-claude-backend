@@ -1,7 +1,7 @@
 import mongoose from 'mongoose'
 
 import Logger from 'bunyan'
-import { config } from '@root/config'
+import { config } from '@src/config'
 import { redisConnection } from '@services/redis/redis.connection'
 
 const log: Logger = config.createLogger('database')
@@ -23,20 +23,3 @@ export default function () {
 
 	mongoose.connection.on('disconected', connect)
 }
-
-/* import { PrismaClient } from '@prisma/client'
-
-const prisma = new PrismaClient() */
-/* async function main() {
-    // ... you will write your Prisma Client queries here
-}
-
-main()
-    .then(async () => {
-        await prisma.$disconnect()
-    })
-    .catch(async (e) => {
-        console.error(e)
-        await prisma.$disconnect()
-        process.exit(1)
-    }) */

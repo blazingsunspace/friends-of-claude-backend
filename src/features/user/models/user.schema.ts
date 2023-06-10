@@ -3,12 +3,13 @@ import mongoose, { model, Model, Schema } from 'mongoose'
 
 const userSchema: Schema = new Schema({
 	authId: { type: mongoose.Schema.Types.ObjectId, ref: 'Auth', index: true },
+	firstName: { type: String, default: '' },
+	middleName: { type: String, default: '' },
+	lastName: { type: String, default: '' },
 	profilePicture: { type: String, default: '' },
 	postsCount: { type: Number, default: 0 },
 	followersCount: { type: Number, default: 0 },
 	followingCount: { type: Number, default: 0 },
-	passwordResetToken: { type: String, default: '' },
-	passwordResetExpires: { type: Number },
 	blocked: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 	blockedBy: [{ type: mongoose.Schema.Types.ObjectId, ref: 'User' }],
 	notifications: {
@@ -28,7 +29,10 @@ const userSchema: Schema = new Schema({
 	location: { type: String, default: '' },
 	quote: { type: String, default: '' },
 	bgImageVersion: { type: String, default: '' },
-	bgImageId: { type: String, default: '' }
+	bgImageId: { type: String, default: '' },
+	createdAt: { type: Date, default: Date.now },
+	updatedAt: { type: Object, default: `{[${new Date().toISOString()}]}` },
+	deleted: { type: Boolean, default: false }
 })
 
 const UserModel: Model<IUserDocument> = model<IUserDocument>('User', userSchema, 'User')

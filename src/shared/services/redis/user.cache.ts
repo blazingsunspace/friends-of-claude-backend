@@ -1,9 +1,9 @@
 import { BaseCache } from '@services/redis/base.cache'
 import { IUserDocument } from '@user/interfaces/user.interface'
 import Logger from 'bunyan'
-import { config } from '@root/config'
+import { config } from '@src/config'
 import { ServerError } from '@globals/helpers/error-handler'
-import { response } from 'express'
+
 import { Helpers } from '@globals/helpers/helpers'
 
 const log: Logger = config.createLogger('userCache')
@@ -14,13 +14,16 @@ export class UserCache extends BaseCache {
 	}
 
 	public async saveUserToCache(key: string, userUId: string, createUser: IUserDocument): Promise<void> {
-		const createdAt = new Date()
 		const {
 			_id,
 			uId,
 			username,
 			email,
 			avatarColor,
+			nottifyMeIfUsedInDocumentary,
+			listMeInDirectory,
+			listMyTestemonials,
+			imStatus,
 			blocked,
 			blockedBy,
 			postsCount,
@@ -34,7 +37,9 @@ export class UserCache extends BaseCache {
 			quote,
 			bgImageId,
 			bgImageVersion,
-			social
+			createdAt,
+			updatedAt,
+			deleted
 		} = createUser
 
 		const firstList: string[] = [
@@ -48,13 +53,25 @@ export class UserCache extends BaseCache {
 			`${email}`,
 			'avatarColor',
 			`${avatarColor}`,
+			'nottifyMeIfUsedInDocumentary',
+			`${nottifyMeIfUsedInDocumentary}`,
+			'listMeInDirectory',
+			`${listMeInDirectory}`,
+			'listMyTestemonials',
+			`${listMyTestemonials}`,
+			'imStatus',
+			`${imStatus}`,
 			'createdAt',
 			`${createdAt}`,
-			'postsCount',
-			`${postsCount}`
+			'updatedAt',
+			`${updatedAt}`,
+			'deleted',
+			`${deleted}`
 		]
 
 		const secondList: string[] = [
+			'postsCount',
+			`${postsCount}`,
 			'blocked',
 			JSON.stringify(blocked),
 			'blockedBy',
@@ -75,10 +92,6 @@ export class UserCache extends BaseCache {
 			`${school}`,
 			'quote',
 			`${quote}`,
-			'bgImageId',
-			`${bgImageId}`,
-			'bgImageVersion',
-			`${bgImageVersion}`,
 			'social',
 			JSON.stringify(notifications)
 		]
@@ -121,7 +134,8 @@ export class UserCache extends BaseCache {
 
 			const response: IUserDocument = (await this.client.HGETALL(`users:${userId}`)) as unknown as IUserDocument
 
-			response.createdAt = new Date(Helpers.parseJson(`${response.createdAt}`))
+
+
 			response.postsCount = Helpers.parseJson(`${response.postsCount}`)
 			response.blocked = Helpers.parseJson(`${response.blocked}`)
 			response.blockedBy = Helpers.parseJson(`${response.blockedBy}`)
@@ -133,6 +147,7 @@ export class UserCache extends BaseCache {
 			response.social = Helpers.parseJson(`${response.social}`)
 			response.followersCount = Helpers.parseJson(`${response.followersCount}`)
 			response.followingCount = Helpers.parseJson(`${response.followingCount}`)
+			/* response.createdAt = new Date(JSON.stringify(Helpers.parseJson(`${response.createdAt}`)))  */
 
 			return response
 		} catch (error) {

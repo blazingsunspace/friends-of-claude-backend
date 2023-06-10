@@ -8,7 +8,7 @@ export class Helpers {
 	}
 
 	static lowerCase(str: string): string {
-		return str.toLocaleLowerCase()
+		return str === '' ? '' : str.toLocaleLowerCase()
 	}
 
 	static generateRandomIntigers(intigerLenghth: number): number {

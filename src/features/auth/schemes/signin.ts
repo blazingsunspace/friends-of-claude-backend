@@ -1,18 +1,8 @@
 import Joi, { ObjectSchema } from 'joi'
 
 const loginSchema: ObjectSchema = Joi.object().keys({
-	username: Joi.string().required().min(4).max(8).messages({
-		'string.base': 'Username must be of type string',
-		'string.min': 'Invalid username',
-		'string.max': 'Invalid username',
-		'string.empty': 'Username is a required field'
-	}),
-	password: Joi.string().required().min(4).max(8).messages({
-		'string.base': 'Password must be of type string',
-		'string.min': 'Invalid password',
-		'string.max': 'Invalid password',
-		'string.empty': 'Password is a required field'
-	})
+	username: Joi.string().required().pattern(new RegExp(/(?=^[^_\n][A-Za-z0-9_]+$)\w{4,50}/)),
+	password: Joi.string().required().pattern(new RegExp(/^(?=.{8,})(?=.*[a-z])(?=.*[0-9])(?=.*[A-Z])(?=.*[ `!@#$%^&*()_+\-=\\[\]{};':"\\|,.<>\\/?~]).*$/))
 })
 
 export { loginSchema }

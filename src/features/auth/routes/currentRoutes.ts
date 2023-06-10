@@ -1,4 +1,5 @@
-import { CurrentUser } from '@auth/controllers/current-user'
+import { CurrentUser } from '@auth/controllers/user/current-user'
+
 import { authMiddleware } from '@globals/helpers/auth-midleware'
 import express, { Router } from 'express'
 

@@ -1,6 +1,6 @@
 import { createClient } from 'redis'
 import Logger from 'bunyan'
-import { config } from '@root/config'
+import { config } from '@src/config'
 
 export type RedisClient = ReturnType<typeof createClient>
 
