@@ -27,6 +27,7 @@ import { createRandomCharacters } from '@auth/controllers/user/helpers/create-ra
 export class ActivateAccount {
 	private async activateAccount(token: string, uId: string, existingUser: IAuthDocument): Promise<void> {
 
+
 		console.log(existingUser.setPassword)
 		console.log(token, uId, existingUser);
 
@@ -46,7 +47,8 @@ export class ActivateAccount {
 			}
 		}
 
-		console.log(uptadeWhatObject,'55555555555555555555555555555555555');
+	
+
 
 		const query: IAuthUpdate = {
 			updateWhere: {
@@ -143,6 +145,7 @@ export class ActivateAccount {
 		}
 
 
+
 		const existingUser: IAuthDocument = await authService.getUserByAccountActivationTokenAndUId(token, uId)
 
 		if (!existingUser) {
@@ -193,6 +196,7 @@ export class ActivateAccount {
 		}
 
 
+
 	}
 
 
@@ -216,6 +220,7 @@ export class ActivateAccount {
 
 		const existingUser: IAuthDocument = await authService.getUserByAccountActivationTokenAndUId(token, uId)
 
+
 		if (!existingUser) {
 			const existingUserWithoutExpiration: IAuthDocument = await authService.getUserByAccountActivationTokenAndUIdWithoutExpiration(token, uId)
 			if (!existingUserWithoutExpiration) {
@@ -234,6 +239,7 @@ export class ActivateAccount {
 				}
 			)
 		}
+
 
 
 

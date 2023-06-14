@@ -29,7 +29,9 @@ import { joiValidation } from '@globals/decorators/joi-validation.decorators'
 import { signupSchema } from '@auth/schemes/signup'
 import { userService } from '@services/db/user.service'
 import Logger from 'bunyan'
+
 import { createRandomCharacters } from './helpers/create-random-characters'
+
 
 const userCache: UserCache = new UserCache()
 
@@ -61,6 +63,7 @@ export class SignUp {
 		const checkIfUserExist: IAuthDocument = await authService.getUserByUsername(username)
 
 
+
 		if (req.headers.authorization) {
 			try {
 				const payload: AuthPayload = JWT.verify(req.headers.authorization.split(' ')[1], config.JWT_TOKEN!) as AuthPayload
@@ -88,6 +91,7 @@ export class SignUp {
 		}
 
 
+
 		if (checkIfUserExist) {
 			throw new NotAcceptableError('User Allready Exist')
 		}
@@ -107,6 +111,7 @@ export class SignUp {
 			password,
 			avatarColor,
 			approvedByAdmin:
+
 				existingUserHelper ? (existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin
 					? true
 					: false) : false,
@@ -114,6 +119,7 @@ export class SignUp {
 				existingUserHelper ? (existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin
 					? true
 					: false) : false,
+
 			nottifyMeIfUsedInDocumentary,
 			listMeInDirectory,
 			listMyTestemonials,
@@ -166,8 +172,6 @@ export class SignUp {
 				await prisma.$disconnect()
 				process.exit(1)
 			}) */
-
-
 
 		if (existingUserHelper ? (existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin) : false) {
 			const activateLink = `${config.CLIENT_URL}/activate-account?uId=${uId}&token=${randomCharacters}`

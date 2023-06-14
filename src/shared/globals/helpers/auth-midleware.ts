@@ -9,6 +9,7 @@ import { userService } from '@services/db/user.service'
 
 import Logger from 'bunyan'
 const log: Logger = config.createLogger('authMiddlewareLogger')
+
 export class AuthMiddleware {
 
 	public async signOutVerify(req: Request, res: Response, next: NextFunction): Promise<void> {
