@@ -6,12 +6,14 @@ import { authMiddleware } from '@globals/helpers/auth-midleware'
 import { adminRoutes } from '@auth/routes/adminRoutes'
 import { superAdminRoutes } from '@auth/routes/superAdminRoutes'
 import { ExpressAdapter } from '@bull-board/express'
+
 const BASE_PATH = '/api/v1'
 
 export let serverAdapter: ExpressAdapter
 // eslint-disable-next-line prefer-const
 serverAdapter = new ExpressAdapter()
 serverAdapter.setBasePath('/admin/queues')
+
 
 export class ApplicationRoutes {
 	app: Application

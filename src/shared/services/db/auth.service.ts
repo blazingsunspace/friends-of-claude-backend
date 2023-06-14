@@ -31,6 +31,19 @@ class AuthService {
 	public async updateAuthUserToDB(data: IAuthUpdate): Promise<void> {
 		AuthService.prototype.doTransaction(async () => {
 			switch (data.pointer) {
+				case 'resendAccountActivation':
+					await AuthModel.updateOne(
+						{
+							_id: data.updateWhere._id,
+							uId: data.updateWhere.uId
+						},
+						{
+							activatedByEmail: data.updateWhat?.activatedByEmail,
+							accountActivationToken: data.updateWhat?.accountActivationToken,
+							accountActivationExpires: data.updateWhat?.accountActivationExpires
+						}
+					).exec()
+					break
 				case 'accountActivation':
 					await AuthModel.updateOne(
 						{
@@ -41,7 +54,9 @@ class AuthService {
 						{
 							activatedByEmail: data.updateWhat?.activatedByEmail,
 							accountActivationToken: data.updateWhat?.accountActivationToken,
-							accountActivationExpires: data.updateWhat?.accountActivationExpires
+							accountActivationExpires: data.updateWhat?.accountActivationExpires,
+							passwordResetToken: data.updateWhat?.passwordResetToken,
+							passwordResetExpires: data.updateWhat?.passwordResetExpires
 						}
 					).exec()
 					break
@@ -121,6 +136,15 @@ class AuthService {
 			passwordResetToken: token,
 			uId: uId,
 			passwordResetExpires: { $gt: new Date().getTime() }
+		}).exec()) as IAuthDocument
+
+		return user
+	}
+
+	public async getUserByAccountActivationTokenAndUIdWithoutExpiration(token: string, uId: string): Promise<IAuthDocument> {
+		const user: IAuthDocument = (await AuthModel.findOne({
+			accountActivationToken: token,
+			uId: uId
 		}).exec()) as IAuthDocument
 
 		return user

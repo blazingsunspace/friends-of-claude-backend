@@ -33,7 +33,7 @@ const options = {
 	allowHTTP1: true
 }
 
-export class ChattyServer {
+export class FriendsOfClaudeServer {
 	private app: Application
 
 	constructor(app: Application) {

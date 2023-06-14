@@ -11,6 +11,7 @@ export class SignOut {
 				const payload: AuthPayload = JWT.verify(req.session?.jwt, config.JWT_TOKEN!) as AuthPayload
 				if (payload) {
 					req.session = null
+					req.currentUser = undefined
 					res.status(HTTP_STATUS.OK).json({ message: 'Logout successful', user: {}, token: '' })
 				}
 			} catch (error) {

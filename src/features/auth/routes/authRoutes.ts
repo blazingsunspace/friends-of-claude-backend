@@ -8,7 +8,7 @@ import express, { Router } from 'express'
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const throttle = require('express-throttle')
 
-import { Request, Response } from 'express'
+import { authMiddleware } from '@globals/helpers/auth-midleware'
 class AuthRoutes {
 	private router: Router
 	constructor() {
@@ -16,10 +16,8 @@ class AuthRoutes {
 	}
 
 	public routes(): Router {
-		this.router.get('/test', function (req: Request, res: Response) {
-			res.send('Hello World')
-		})
-		this.router.post('/signup', SignUp.prototype.create)
+
+		this.router.post('/signup', authMiddleware.signOutVerify, SignUp.prototype.create)
 
 		this.router.post(
 			'/signin',
@@ -40,12 +38,14 @@ class AuthRoutes {
 					res.status(503).send({ message: 'System overloaded, try again at a later time.', success: false })
 				}
 			}),
+			authMiddleware.signOutVerify,
 			SignIn.prototype.read
 		)
-		this.router.post('/forgot-password', Password.prototype.create)
+		this.router.post('/forgot-password', authMiddleware.signOutVerify, Password.prototype.create)
 		this.router.post('/reset-password/:uId/:token', Password.prototype.update)
-		this.router.post('/activate-account/:uId/:token', ActivateAccount.prototype.activate)
-		this.router.post('/activate-acount-and-set-password/:uId/:token', ActivateAccount.prototype.activate)
+		this.router.post('/activate-account/:uId/:token', authMiddleware.signOutVerify, ActivateAccount.prototype.activate)
+		this.router.post('/set-password/:uId/:token', authMiddleware.signOutVerify, ActivateAccount.prototype.setPassword)
+		this.router.post('/resend-account-activation', authMiddleware.signOutVerify, ActivateAccount.prototype.resendAccountActivation)
 		return this.router
 	}
 
