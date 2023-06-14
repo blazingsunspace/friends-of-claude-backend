@@ -11,27 +11,21 @@ import Logger from 'bunyan'
 const log: Logger = config.createLogger('authMiddlewareLogger')
 
 export class AuthMiddleware {
-
 	public async signOutVerify(req: Request, res: Response, next: NextFunction): Promise<void> {
 		if (req.session?.jwt) {
-
 			const payload: AuthPayload = JWT.verify(req.session.jwt, config.JWT_TOKEN!) as AuthPayload
 			if (payload) {
 				const existingUser: AuthPayload = await authService.getAuthUserById2(`${payload._id}`)
 
-				if (!(existingUser.role == config.CONSTANTS.userRoles.superAdmin || existingUser.role == config.CONSTANTS.userRoles.admin)){
+				if (!(existingUser.role == config.CONSTANTS.userRoles.superAdmin || existingUser.role == config.CONSTANTS.userRoles.admin)) {
 					throw new NotAuthorizedError(`This route can not be used by logged user ${req.url}`)
 				}
-
-
 			}
-
 		}
 		next()
 	}
 
 	public async verifyUser(req: Request, _res: Response, next: NextFunction): Promise<void> {
-
 		if (!req.session?.jwt) {
 			throw new NotAuthorizedError('Token is not available. Please login again1')
 		}
