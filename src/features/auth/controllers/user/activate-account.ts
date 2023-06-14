@@ -4,7 +4,7 @@ import HTTP_STATUS from 'http-status-codes'
 
 import moment from 'moment'
 import publicIP from 'ip'
-import crypto from 'crypto'
+
 import { authService } from '@services/db/auth.service'
 import { BadRequestError } from '@globals/helpers/error-handler'
 import { IAuthDocument, IAuthUpdate, IUpdateAuthActivationUpdateWhat } from '@auth/interfaces/auth.interface'
@@ -26,11 +26,6 @@ import { passwordSchema } from '@auth/schemes/password'
 import { createRandomCharacters } from '@auth/controllers/user/helpers/create-random-characters'
 export class ActivateAccount {
 	private async activateAccount(token: string, uId: string, existingUser: IAuthDocument): Promise<void> {
-
-
-		console.log(existingUser.setPassword)
-		console.log(token, uId, existingUser);
-
 		let uptadeWhatObject: IUpdateAuthActivationUpdateWhat = {
 			activatedByEmail: true,
 			accountActivationToken: '',
@@ -38,17 +33,12 @@ export class ActivateAccount {
 		}
 
 		if (existingUser.setPassword) {
-
 			uptadeWhatObject = {
 				...uptadeWhatObject,
 				passwordResetToken: existingUser.passwordResetToken,
 				passwordResetExpires: parseInt(String(existingUser.passwordResetExpires))
-
 			}
 		}
-
-	
-
 
 		const query: IAuthUpdate = {
 			updateWhere: {
@@ -89,7 +79,6 @@ export class ActivateAccount {
 			throw new BadRequestError('can not find user with that token uid combination555')
 		}
 
-
 		const randomCharacters: string = await createRandomCharacters()
 		const activateLink = `${config.CLIENT_URL}/activate-account?uId=${existingUserWithoutExpiration.uId}&token=${randomCharacters}`
 
@@ -108,9 +97,7 @@ export class ActivateAccount {
 
 		new UpdateAuthQueue('updateAuthUserToDB', query)
 
-
 		if (existingUserWithoutExpiration.approvedByAdmin) {
-
 			const templateParams: IAccountActivateParams = {
 				username: existingUserWithoutExpiration.username,
 				activateLink: activateLink
@@ -118,23 +105,27 @@ export class ActivateAccount {
 
 			const template: string = resentAccountActivationWithPassword.resentAccountActivationWithPassword(templateParams)
 
-			new EmailQueue('sendAccountCreatedByAdminEmail', { template, receiverEmail: existingUserWithoutExpiration.email, subject: 'Send account reactivation with password' })
+			new EmailQueue('sendAccountCreatedByAdminEmail', {
+				template,
+				receiverEmail: existingUserWithoutExpiration.email,
+				subject: 'Send account reactivation with password'
+			})
 			res.status(HTTP_STATUS.OK).json({ message: 'Send account reactivation with password 4123' })
 		} else {
-
 			const templateParams: IAccountActivateParams = {
 				username: existingUserWithoutExpiration.username,
 				activateLink: activateLink
 			}
 
 			const template: string = resendAccountActivationTemplate.resendAccountActivationTemplate(templateParams)
-			new EmailQueue('sendAccountActivationEmail', { template, receiverEmail: existingUserWithoutExpiration.email, subject: 'Send account reactivation 44' })
+			new EmailQueue('sendAccountActivationEmail', {
+				template,
+				receiverEmail: existingUserWithoutExpiration.email,
+				subject: 'Send account reactivation 44'
+			})
 
 			res.status(HTTP_STATUS.OK).json({ message: 'Send account reactivation 443' })
 		}
-
-
-
 	}
 
 	public async activate(req: Request, res: Response): Promise<void> {
@@ -144,66 +135,48 @@ export class ActivateAccount {
 			throw new BadRequestError('cant activate account without token and id')
 		}
 
-
-
 		const existingUser: IAuthDocument = await authService.getUserByAccountActivationTokenAndUId(token, uId)
 
 		if (!existingUser) {
-			const existingUserWithoutExpiration: IAuthDocument = await authService.getUserByAccountActivationTokenAndUIdWithoutExpiration(token, uId)
+			const existingUserWithoutExpiration: IAuthDocument = await authService.getUserByAccountActivationTokenAndUIdWithoutExpiration(
+				token,
+				uId
+			)
 
 			if (!existingUserWithoutExpiration) {
 				throw new BadRequestError('can not find user with that token uid combination')
 			}
 
-			res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: 'Your token for activation has been expired', data: { resendActivationEmail: true } })
-
+			res
+				.status(HTTP_STATUS.UNAUTHORIZED)
+				.json({ message: 'Your token for activation has been expired', data: { resendActivationEmail: true } })
 		} else {
-
-
-
 			if (existingUser.setPassword) {
-
 				const randomCharacters: string = await createRandomCharacters()
 
 				existingUser.passwordResetToken = randomCharacters
 				existingUser.passwordResetExpires = new Date().getTime() + 1000 * 60 * 60
 
-
-				console.log(existingUser,'3333333333333333333333333311111111111');
-
-
 				ActivateAccount.prototype.activateAccount(token, uId, existingUser)
 
-				res.status(HTTP_STATUS.OK).json(
-					{
-						message: 'Your account is created, but you will need to set password before you can continue using FOC app',
-						data: {
-							setPassword: true,
-							uId: existingUser.uId,
-							passwordResetToken: randomCharacters
-						}
+				res.status(HTTP_STATUS.OK).json({
+					message: 'Your account is created, but you will need to set password before you can continue using FOC app',
+					data: {
+						setPassword: true,
+						uId: existingUser.uId,
+						passwordResetToken: randomCharacters
 					}
-				)
-
+				})
 			} else {
 				ActivateAccount.prototype.activateAccount(token, uId, existingUser)
 				res.status(HTTP_STATUS.OK).json({ message: 'Account succesfuly activated. 33223' })
-
 			}
-
-
-
 		}
-
-
-
 	}
-
 
 	@joiValidation(passwordSchema)
 	public async setPassword(req: Request, res: Response): Promise<void> {
 		const { token, uId, password, confirmPassword } = req.body
-
 
 		if (!token) {
 			throw new BadRequestError('cant reset password without token')
@@ -220,28 +193,25 @@ export class ActivateAccount {
 
 		const existingUser: IAuthDocument = await authService.getUserByAccountActivationTokenAndUId(token, uId)
 
-
 		if (!existingUser) {
-			const existingUserWithoutExpiration: IAuthDocument = await authService.getUserByAccountActivationTokenAndUIdWithoutExpiration(token, uId)
+			const existingUserWithoutExpiration: IAuthDocument = await authService.getUserByAccountActivationTokenAndUIdWithoutExpiration(
+				token,
+				uId
+			)
 			if (!existingUserWithoutExpiration) {
 				throw new BadRequestError('can not find user with that token uid combination33')
 			}
 
-			res.status(HTTP_STATUS.UNAUTHORIZED).json({ message: 'Your token for activation has been expired 22', data: { resendActivationEmail: true } })
-
+			res
+				.status(HTTP_STATUS.UNAUTHORIZED)
+				.json({ message: 'Your token for activation has been expired 22', data: { resendActivationEmail: true } })
 		} else {
 			await setNewPassword(token, uId, password)
 			existingUser.setPassword = false
 
-			res.status(HTTP_STATUS.OK).json(
-				{
-					message: 'You successfully set your password for first time. Now You can use FOC app.'
-				}
-			)
+			res.status(HTTP_STATUS.OK).json({
+				message: 'You successfully set your password for first time. Now You can use FOC app.'
+			})
 		}
-
-
-
-
 	}
 }

@@ -14,7 +14,6 @@ async function setNewPassword(token: string, uId: string, password: string) {
 		throw new BadRequestError('Reset token has expired 56')
 	}
 
-
 	existingUser.password = password
 	existingUser.passwordResetExpires = undefined
 	existingUser.passwordResetToken = undefined

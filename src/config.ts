@@ -47,7 +47,7 @@ class Config {
 
 	public CONSTANTS: constants
 
-	private readonly DEFAULT_DATABASE_URL = 'mongodb://localhost:27017/chatty-backend'
+	private readonly DEFAULT_DATABASE_URL = 'mongodb://localhost:27017/friends-of-claude'
 
 	constructor() {
 		this.DATABASE_URL = process.env.DATABASE_URL || this.DEFAULT_DATABASE_URL

@@ -6,7 +6,6 @@ import { authService } from '@services/db/auth.service'
 import { BadRequestError } from '@globals/helpers/error-handler'
 import { IAuthDocument, IAuthUpdate } from '@auth/interfaces/auth.interface'
 
-import crypto from 'crypto'
 import { forgotPasswordTemplate } from '@services/emails/templates/forgot-password/forgot-password-template'
 
 import EmailQueue from '@services/queues/email.queue'
@@ -16,6 +15,7 @@ import UpdateAuthQueue from '@services/queues/update-auth'
 import { passwordSchema } from '@auth/schemes/password'
 import { joiValidation } from '@globals/decorators/joi-validation.decorators'
 import { createRandomCharacters } from './helpers/create-random-characters'
+
 export class Password {
 	@joiValidation(passwordSchema)
 	public async create(req: Request, res: Response): Promise<void> {
@@ -25,7 +25,6 @@ export class Password {
 		if (!existingUser) {
 			throw new BadRequestError('Invalid credentials4')
 		}
-
 
 		const randomCharacters: string = await createRandomCharacters()
 

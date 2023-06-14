@@ -19,8 +19,6 @@ import { config } from '@src/config'
 import { accountActivationTemplate } from '@services/emails/templates/account-activation/account-activation-template'
 import EmailQueue from '@services/queues/email.queue'
 
-import crypto from 'crypto'
-
 import { accountCreatedByAdminTemplate } from '@services/emails/templates/account-created-by-admin/account-created-by-admin-template'
 
 import AuthQueue from '@services/queues/auth.queue'
@@ -31,7 +29,6 @@ import { userService } from '@services/db/user.service'
 import Logger from 'bunyan'
 
 import { createRandomCharacters } from './helpers/create-random-characters'
-
 
 const userCache: UserCache = new UserCache()
 
@@ -62,8 +59,6 @@ export class SignUp {
 
 		const checkIfUserExist: IAuthDocument = await authService.getUserByUsername(username)
 
-
-
 		if (req.headers.authorization) {
 			try {
 				const payload: AuthPayload = JWT.verify(req.headers.authorization.split(' ')[1], config.JWT_TOKEN!) as AuthPayload
@@ -90,8 +85,6 @@ export class SignUp {
 			}
 		}
 
-
-
 		if (checkIfUserExist) {
 			throw new NotAcceptableError('User Allready Exist')
 		}
@@ -99,7 +92,6 @@ export class SignUp {
 		const authObjectId: ObjectId = new ObjectId()
 		const userObjectId: ObjectId = new ObjectId()
 		const uId = `${Helpers.generateRandomIntigers(40)}`
-
 
 		const randomCharacters: string = await createRandomCharacters()
 
@@ -110,16 +102,16 @@ export class SignUp {
 			email,
 			password,
 			avatarColor,
-			approvedByAdmin:
-
-				existingUserHelper ? (existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin
+			approvedByAdmin: existingUserHelper
+				? existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin
 					? true
-					: false) : false,
-			setPassword:
-				existingUserHelper ? (existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin
+					: false
+				: false,
+			setPassword: existingUserHelper
+				? existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin
 					? true
-					: false) : false,
-
+					: false
+				: false,
 			nottifyMeIfUsedInDocumentary,
 			listMeInDirectory,
 			listMyTestemonials,
@@ -173,7 +165,11 @@ export class SignUp {
 				process.exit(1)
 			}) */
 
-		if (existingUserHelper ? (existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin) : false) {
+		if (
+			existingUserHelper
+				? existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin
+				: false
+		) {
 			const activateLink = `${config.CLIENT_URL}/activate-account?uId=${uId}&token=${randomCharacters}`
 
 			const templateParams: IAccountActivateParams = {

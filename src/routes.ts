@@ -14,7 +14,6 @@ export let serverAdapter: ExpressAdapter
 serverAdapter = new ExpressAdapter()
 serverAdapter.setBasePath('/admin/queues')
 
-
 export class ApplicationRoutes {
 	app: Application
 	constructor(app: Application) {

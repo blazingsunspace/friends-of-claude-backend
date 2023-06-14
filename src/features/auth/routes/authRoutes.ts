@@ -16,7 +16,6 @@ class AuthRoutes {
 	}
 
 	public routes(): Router {
-
 		this.router.post('/signup', authMiddleware.signOutVerify, SignUp.prototype.create)
 
 		this.router.post(
