@@ -1,6 +1,6 @@
 import express from 'express'
 
-import { ChattyServer } from '@src/setupServer'
+import { FriendsOfClaudeServer } from '@src/setupServer'
 
 import databaseConnection from '@src/setupDatabase'
 
@@ -16,7 +16,7 @@ class Application {
 
 		const app: express.Application = express()
 
-		const server: ChattyServer = new ChattyServer(app)
+		const server: FriendsOfClaudeServer = new FriendsOfClaudeServer(app)
 
 		server.start()
 	}

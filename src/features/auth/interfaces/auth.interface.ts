@@ -56,8 +56,9 @@ export interface IUpdateAuthActivationUpdateWhat {
 	accountActivationToken?: string
 	accountActivationExpires?: number
 
-	passwordResetToken?: string
-	passwordResetExpires?: number
+	passwordResetToken?: string | undefined
+	passwordResetExpires?: number | undefined
+
 }
 
 export interface IAuthDocument extends Document {

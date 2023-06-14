@@ -30,6 +30,9 @@ import { signupSchema } from '@auth/schemes/signup'
 import { userService } from '@services/db/user.service'
 import Logger from 'bunyan'
 
+import { createRandomCharacters } from './helpers/create-random-characters'
+
+
 const userCache: UserCache = new UserCache()
 
 const log: Logger = config.createLogger('signUpController')
@@ -59,33 +62,35 @@ export class SignUp {
 
 		const checkIfUserExist: IAuthDocument = await authService.getUserByUsername(username)
 
-		if (!req.currentUser) {
-			if (req.headers.authorization) {
-				try {
-					const payload: AuthPayload = JWT.verify(req.headers.authorization.split(' ')[1], config.JWT_TOKEN!) as AuthPayload
 
-					const existingUser: AuthPayload = await authService.getAuthUserById2(`${payload._id}`)
 
-					const existingProfile: IUserDocument = await userService.getUserByAuthId(`${payload._id}`)
+		if (req.headers.authorization) {
+			try {
+				const payload: AuthPayload = JWT.verify(req.headers.authorization.split(' ')[1], config.JWT_TOKEN!) as AuthPayload
 
-					if (existingUser == null || existingProfile == null) {
-						throw new NotAcceptableError('Bearer token is not valid')
-					}
+				const existingUser: AuthPayload = await authService.getAuthUserById2(`${payload._id}`)
 
-					if (!(existingUser.role == config.CONSTANTS.userRoles.admin || existingUser.role == config.CONSTANTS.userRoles.superAdmin)) {
-						throw new NotAcceptableError('You allready have account, you can not use sing up route')
-					}
+				const existingProfile: IUserDocument = await userService.getUserByAuthId(`${payload._id}`)
 
-					existingUser.authId = existingProfile._id
-					existingUserHelper = existingUser
-
-					// eslint-disable-next-line @typescript-eslint/no-explicit-any
-				} catch (error: any) {
-					log.error('Bearer token is expired', error)
-					throw new NotAcceptableError(error)
+				if (existingUser == null || existingProfile == null) {
+					throw new NotAcceptableError('Bearer token is not valid')
 				}
+
+				if (!(existingUser.role == config.CONSTANTS.userRoles.admin || existingUser.role == config.CONSTANTS.userRoles.superAdmin)) {
+					throw new NotAcceptableError('You allready have account, you can not use sing up route')
+				}
+
+				existingUser.authId = existingProfile._id
+				existingUserHelper = existingUser
+
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
+			} catch (error: any) {
+				log.error('Bearer token is expired', error)
+				throw new NotAcceptableError(error)
 			}
 		}
+
+
 
 		if (checkIfUserExist) {
 			throw new NotAcceptableError('User Allready Exist')
@@ -95,8 +100,8 @@ export class SignUp {
 		const userObjectId: ObjectId = new ObjectId()
 		const uId = `${Helpers.generateRandomIntigers(40)}`
 
-		const randomBytes: Buffer = await Promise.resolve(crypto.randomBytes(20))
-		const randomCharacters: string = randomBytes.toString('hex')
+
+		const randomCharacters: string = await createRandomCharacters()
 
 		const authData: IAuthDocument = SignUp.prototype.sigunupData({
 			_id: authObjectId,
@@ -106,13 +111,15 @@ export class SignUp {
 			password,
 			avatarColor,
 			approvedByAdmin:
-				existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin
+
+				existingUserHelper ? (existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin
 					? true
-					: false,
+					: false) : false,
 			setPassword:
-				existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin
+				existingUserHelper ? (existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin
 					? true
-					: false,
+					: false) : false,
+
 			nottifyMeIfUsedInDocumentary,
 			listMeInDirectory,
 			listMyTestemonials,
@@ -166,8 +173,8 @@ export class SignUp {
 				process.exit(1)
 			}) */
 
-		if (existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin) {
-			const activateLink = `${config.CLIENT_URL}/activate-account-and-set-password?uId=${uId}&token=${randomCharacters}`
+		if (existingUserHelper ? (existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin) : false) {
+			const activateLink = `${config.CLIENT_URL}/activate-account?uId=${uId}&token=${randomCharacters}`
 
 			const templateParams: IAccountActivateParams = {
 				username: username,

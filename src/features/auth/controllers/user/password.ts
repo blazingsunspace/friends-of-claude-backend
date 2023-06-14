@@ -13,8 +13,11 @@ import EmailQueue from '@services/queues/email.queue'
 
 import { setNewPassword } from '@auth/controllers/user/helpers/set-new-password'
 import UpdateAuthQueue from '@services/queues/update-auth'
-
+import { passwordSchema } from '@auth/schemes/password'
+import { joiValidation } from '@globals/decorators/joi-validation.decorators'
+import { createRandomCharacters } from './helpers/create-random-characters'
 export class Password {
+	@joiValidation(passwordSchema)
 	public async create(req: Request, res: Response): Promise<void> {
 		const { email } = req.body
 		const existingUser: IAuthDocument = await authService.getAuthUserByEmail(email)
@@ -23,8 +26,8 @@ export class Password {
 			throw new BadRequestError('Invalid credentials4')
 		}
 
-		const randomBytes: Buffer = await Promise.resolve(crypto.randomBytes(20))
-		const randomCharacters: string = randomBytes.toString('hex')
+
+		const randomCharacters: string = await createRandomCharacters()
 
 		const updatePasswordData: IAuthUpdate = {
 			updateWhere: {
@@ -47,6 +50,7 @@ export class Password {
 		res.status(HTTP_STATUS.OK).json({ message: 'password reset email send.' })
 	}
 
+	@joiValidation(passwordSchema)
 	public async update(req: Request, res: Response): Promise<void> {
 		const { password, confirmPassword } = req.body
 		const { token, uId } = req.params
