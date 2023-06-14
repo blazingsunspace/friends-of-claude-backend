@@ -1,7 +1,5 @@
 import HTTP_STATUS from 'http-status-codes'
 
-import { userService } from '@services/db/user.service'
-
 import { Request, Response } from 'express'
 
 import Logger from 'bunyan'
@@ -31,8 +29,11 @@ export class ApproveAccountCreation {
 			throw new BadRequestError('user allready approved')
 		}
 
-		try {
+		if (!existingUser) {
+			throw new BadRequestError('that user is not existing so you can not approve it')
+		}
 
+		try {
 			const query: IAuthUpdate = {
 				updateWhere: {
 					_id: _id
@@ -41,7 +42,6 @@ export class ApproveAccountCreation {
 			}
 
 			new UpdateAuthQueue('updateAuthUserToDB', query)
-
 		} catch (error) {
 			log.error('approve account creation error')
 		}

@@ -2,8 +2,6 @@ import { Request, Response } from 'express'
 import { config } from '@src/config'
 import HTTP_STATUS from 'http-status-codes'
 
-
-
 import { authService } from '@services/db/auth.service'
 import { BadRequestError } from '@globals/helpers/error-handler'
 import { IAuthDocument, IAuthUpdate } from '@auth/interfaces/auth.interface'
@@ -32,15 +30,14 @@ export class Password {
 			updateWhere: {
 				_id: `${existingUser._id!}`
 			},
-			updateWhat:{
+			updateWhat: {
 				passwordResetToken: randomCharacters,
 				passwordResetExpires: new Date().getTime() + 1000 * 60 * 60
 			},
-			pointer:'setNewPassword'
+			pointer: 'setNewPassword'
 		}
 
 		new UpdateAuthQueue('updateAuthUserToDB', updatePasswordData)
-
 
 		const resetLink = `${config.CLIENT_URL}/reset-password?uId=${existingUser.uId}&token=${randomCharacters}`
 		const template: string = forgotPasswordTemplate.passwordResetTemplate(existingUser.username!, resetLink)

@@ -11,8 +11,8 @@ class SuperAdminRoutes {
 	}
 
 	public routes(): Router {
-		this.router.post('/set-admin', authMiddleware.adminAuthentification, SetAdmin.prototype.read)
-		this.router.post('/un-set-admin', authMiddleware.adminAuthentification, UnSetAdmin.prototype.read)
+		this.router.post('/set-admin', authMiddleware.superAdminAuthentification, SetAdmin.prototype.read)
+		this.router.post('/un-set-admin', authMiddleware.superAdminAuthentification, UnSetAdmin.prototype.read)
 		return this.router
 	}
 }

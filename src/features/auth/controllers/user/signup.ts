@@ -2,7 +2,7 @@ import HTTP_STATUS from 'http-status-codes'
 import { ObjectId } from 'mongodb'
 import { Request, Response } from 'express'
 
-import { IAuthDocument, ISignUpData } from '@auth/interfaces/auth.interface'
+import { AuthPayload, IAuthDocument, ISignUpData } from '@auth/interfaces/auth.interface'
 import { authService } from '@services/db/auth.service'
 import { BadRequestError, NotAcceptableError, UserDidNotAcceptTermsAndConditions } from '@globals/helpers/error-handler'
 import { Helpers } from '@globals/helpers/helpers'
@@ -27,14 +27,19 @@ import AuthQueue from '@services/queues/auth.queue'
 
 import { joiValidation } from '@globals/decorators/joi-validation.decorators'
 import { signupSchema } from '@auth/schemes/signup'
+import { userService } from '@services/db/user.service'
+import Logger from 'bunyan'
 
 const userCache: UserCache = new UserCache()
 
-export class SignUp {
+const log: Logger = config.createLogger('signUpController')
 
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+let existingUserHelper: any
+
+export class SignUp {
 	@joiValidation(signupSchema)
 	public async create(req: Request, res: Response): Promise<void> {
-
 		const {
 			username,
 			email,
@@ -48,12 +53,39 @@ export class SignUp {
 			acceptTermsAndConditions
 		} = req.body
 
-
 		if (!acceptTermsAndConditions) {
 			throw new UserDidNotAcceptTermsAndConditions('User did not accepted terms and conditions')
 		}
 
 		const checkIfUserExist: IAuthDocument = await authService.getUserByUsername(username)
+
+		if (!req.currentUser) {
+			if (req.headers.authorization) {
+				try {
+					const payload: AuthPayload = JWT.verify(req.headers.authorization.split(' ')[1], config.JWT_TOKEN!) as AuthPayload
+
+					const existingUser: AuthPayload = await authService.getAuthUserById2(`${payload._id}`)
+
+					const existingProfile: IUserDocument = await userService.getUserByAuthId(`${payload._id}`)
+
+					if (existingUser == null || existingProfile == null) {
+						throw new NotAcceptableError('Bearer token is not valid')
+					}
+
+					if (!(existingUser.role == config.CONSTANTS.userRoles.admin || existingUser.role == config.CONSTANTS.userRoles.superAdmin)) {
+						throw new NotAcceptableError('You allready have account, you can not use sing up route')
+					}
+
+					existingUser.authId = existingProfile._id
+					existingUserHelper = existingUser
+
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				} catch (error: any) {
+					log.error('Bearer token is expired', error)
+					throw new NotAcceptableError(error)
+				}
+			}
+		}
 
 		if (checkIfUserExist) {
 			throw new NotAcceptableError('User Allready Exist')
@@ -73,8 +105,14 @@ export class SignUp {
 			email,
 			password,
 			avatarColor,
-			approvedByAdmin: req.currentUser?.role === 2 ? true : false,
-			setPassword: req.currentUser?.role === 2 ? true : false,
+			approvedByAdmin:
+				existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin
+					? true
+					: false,
+			setPassword:
+				existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin
+					? true
+					: false,
 			nottifyMeIfUsedInDocumentary,
 			listMeInDirectory,
 			listMyTestemonials,
@@ -128,7 +166,7 @@ export class SignUp {
 				process.exit(1)
 			}) */
 
-		if (req.currentUser?.role === 2) {
+		if (existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin) {
 			const activateLink = `${config.CLIENT_URL}/activate-account-and-set-password?uId=${uId}&token=${randomCharacters}`
 
 			const templateParams: IAccountActivateParams = {
@@ -183,6 +221,8 @@ export class SignUp {
 			accountActivationToken,
 			accountActivationExpires,
 			nottifyMeIfUsedInDocumentary,
+			approvedByAdmin,
+			setPassword,
 			listMeInDirectory,
 			listMyTestemonials,
 			imStatus
@@ -199,6 +239,8 @@ export class SignUp {
 			listMeInDirectory,
 			listMyTestemonials,
 			imStatus,
+			approvedByAdmin,
+			setPassword,
 			createdAt: currentTimestam,
 			updatedAt: currentTimestam,
 			accountActivationToken,

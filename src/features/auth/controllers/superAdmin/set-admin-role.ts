@@ -1,7 +1,5 @@
 import HTTP_STATUS from 'http-status-codes'
 
-import { userService } from '@services/db/user.service'
-
 import { Request, Response } from 'express'
 
 import Logger from 'bunyan'
@@ -13,7 +11,6 @@ import { IAuthDocument, IAuthUpdate } from '@auth/interfaces/auth.interface'
 import EmailQueue from '@services/queues/email.queue'
 
 import { IAccountPromotedToAdmin } from '@user/interfaces/user.interface'
-
 
 import { accountPromotedToAdminTemplate } from '@services/emails/templates/account-promtoed-to-admin/account-promtoed-to-admin-template'
 import UpdateAuthQueue from '@services/queues/update-auth'
@@ -45,7 +42,7 @@ export class SetAdmin {
 		try {
 			const query: IAuthUpdate = {
 				updateWhere: {
-					_id: _id,
+					_id: _id
 				},
 				pointer: 'setAdmin'
 			}
@@ -55,7 +52,6 @@ export class SetAdmin {
 		} catch (error) {
 			log.error('sett admin to account error')
 		}
-
 
 		const templateParams: IAccountPromotedToAdmin = {
 			username: existingUser.username,

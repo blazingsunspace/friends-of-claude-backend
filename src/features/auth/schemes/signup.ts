@@ -1,8 +1,12 @@
 import Joi, { ObjectSchema } from 'joi'
 
 const signupSchema: ObjectSchema = Joi.object().keys({
-	username: Joi.string().required().pattern(new RegExp(/(?=^[^_\n][A-Za-z0-9_]+$)\w{4,50}/)),
-	password: Joi.string().required().pattern(new RegExp(/^(?=.{8,})(?=.*[a-z])(?=.*[0-9])(?=.*[A-Z])(?=.*[ `!@#$%^&*()_+\-=\\[\]{};':"\\|,.<>\\/?~]).*$/)),
+	username: Joi.string()
+		.required()
+		.pattern(new RegExp(/(?=^[^_\n][A-Za-z0-9_]+$)\w{4,50}/)),
+	password: Joi.string()
+		.required()
+		.pattern(new RegExp(/^(?=.{8,})(?=.*[a-z])(?=.*[0-9])(?=.*[A-Z])(?=.*[ `!@#$%^&*()_+\-=\\[\]{};':"\\|,.<>\\/?~]).*$/)),
 	email: Joi.string().required().email().messages({
 		'string.base': 'Email must be of type string',
 		'string.email': 'Email must be valid',

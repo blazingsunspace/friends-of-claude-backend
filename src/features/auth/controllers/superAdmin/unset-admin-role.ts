@@ -1,6 +1,5 @@
 import HTTP_STATUS from 'http-status-codes'
 
-
 import { Request, Response } from 'express'
 
 import Logger from 'bunyan'
@@ -13,8 +12,6 @@ import EmailQueue from '@services/queues/email.queue'
 
 import { IAccountPromotedToAdmin } from '@user/interfaces/user.interface'
 
-
-import { accountPromotedToAdminTemplate } from '@services/emails/templates/account-promtoed-to-admin/account-promtoed-to-admin-template'
 import UpdateAuthQueue from '@services/queues/update-auth'
 import { accountUnPromotedToAdminTemplate } from '@services/emails/templates/account-un-promtoed-to-admin/account-un-promtoed-to-admin-template'
 
@@ -45,16 +42,14 @@ export class UnSetAdmin {
 		try {
 			const query: IAuthUpdate = {
 				updateWhere: {
-					_id: _id,
+					_id: _id
 				},
 				pointer: 'unsetAdmin'
 			}
 			new UpdateAuthQueue('updateAuthUserToDB', query)
-
 		} catch (error) {
 			log.error('un sett admin to account error')
 		}
-
 
 		const templateParams: IAccountPromotedToAdmin = {
 			username: existingUser.username,

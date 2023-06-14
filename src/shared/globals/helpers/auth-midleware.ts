@@ -7,7 +7,6 @@ import { authService } from '@services/db/auth.service'
 import { IUserDocument } from '@user/interfaces/user.interface'
 import { userService } from '@services/db/user.service'
 
-
 export class AuthMiddleware {
 	public async verifyUser(req: Request, _res: Response, next: NextFunction): Promise<void> {
 		if (!req.session?.jwt) {
@@ -15,7 +14,6 @@ export class AuthMiddleware {
 		}
 
 		try {
-
 			if (req.headers?.authorization) {
 				const payload: AuthPayload = JWT.verify(req.headers.authorization.split(' ')[1], config.JWT_TOKEN!) as AuthPayload
 
@@ -24,10 +22,8 @@ export class AuthMiddleware {
 				const existingUser2: IUserDocument = await userService.getUserByAuthId(`${payload._id}`)
 				existingUser.authId = existingUser2._id
 
-
 				req.currentUser = existingUser
 			}
-
 		} catch (error) {
 			throw new NotAuthorizedError('Token is invalid. Please login again')
 		}
@@ -61,7 +57,7 @@ export class AuthMiddleware {
 		next()
 	}
 
-	public async superAuthentification(req: Request, _res: Response, next: NextFunction): Promise<void> {
+	public async superAdminAuthentification(req: Request, _res: Response, next: NextFunction): Promise<void> {
 		const existingUser: IAuthDocument = await authService.getAuthUserById(`${req.currentUser?._id}`)
 
 		if (existingUser?.role !== config.CONSTANTS.userRoles.superAdmin) {

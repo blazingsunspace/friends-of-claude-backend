@@ -1,4 +1,3 @@
-
 import dotenv from 'dotenv'
 
 import cloudinary from 'cloudinary'
@@ -27,9 +26,7 @@ const constants: constants = {
 		admin: 4,
 		superAdmin: 5
 	}
-
 }
-
 
 class Config {
 	public DATABASE_URL: string | ''
