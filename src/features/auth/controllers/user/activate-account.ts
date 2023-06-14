@@ -13,20 +13,13 @@ import EmailQueue from '@services/queues/email.queue'
 import { IAccountActivatedParams } from '@user/interfaces/user.interface'
 
 import { accountActivatedTemplate } from '@services/emails/templates/account-activated/account-activated-template'
-import { AuthModel } from '@auth/models/auth.schema'
 
 import { setNewPassword } from '@auth/controllers/user/helpers/set-new-password'
 
 import UpdateAuthQueue from '@services/queues/update-auth'
 
 export class ActivateAccount {
-
-	private async activateAccount(token: string, uId: string): Promise<void> {
-		const existingUser: IAuthDocument = await authService.getUserByAccountActivationTokenAndUId(token, uId)
-
-		if (!existingUser) {
-			throw new BadRequestError('can not find user with that token uid combination')
-		}
+	private async activateAccount(token: string, uId: string, existingUser: IAuthDocument): Promise<void> {
 		const query: IAuthUpdate = {
 			updateWhere: {
 				accountActivationToken: token,
@@ -41,7 +34,6 @@ export class ActivateAccount {
 		}
 
 		new UpdateAuthQueue('updateAuthUserToDB', query)
-
 
 		const templateParams: IAccountActivatedParams = {
 			username: existingUser.username!,
@@ -65,8 +57,13 @@ export class ActivateAccount {
 			throw new BadRequestError('cant activate account without token and id')
 		}
 
-		ActivateAccount.prototype.activateAccount(token, uId)
+		const existingUser: IAuthDocument = await authService.getUserByAccountActivationTokenAndUId(token, uId)
 
+		if (!existingUser) {
+			throw new BadRequestError('can not find user with that token uid combination')
+		}
+
+		ActivateAccount.prototype.activateAccount(token, uId, existingUser)
 		res.status(HTTP_STATUS.OK).json({ message: 'Account succesfuly activated. 33223' })
 	}
 
@@ -87,12 +84,16 @@ export class ActivateAccount {
 			throw new BadRequestError('Passwords do not match')
 		}
 
+		const existingUser: IAuthDocument = await authService.getUserByAccountActivationTokenAndUId(token, uId)
+
+		if (!existingUser) {
+			throw new BadRequestError('can not find user with that token uid combination 33')
+		}
+
 		await setNewPassword(token, uId, password)
 
-		await ActivateAccount.prototype.activateAccount(token, uId)
+		await ActivateAccount.prototype.activateAccount(token, uId, existingUser)
 
 		res.status(HTTP_STATUS.OK).json({ message: 'Account succesfuly activated and you set your first password. 3112142' })
 	}
-
-
 }

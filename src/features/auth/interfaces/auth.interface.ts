@@ -40,14 +40,13 @@ export interface ActivateAccountDocument extends Document {
 	accountActivationExpires?: number | string
 }
 export interface IAuthUpdate {
-	updateWhere: IUpdateAuthActivationUpdateWhere,
-	updateWhat?: IUpdateAuthActivationUpdateWhat,
+	updateWhere: IUpdateAuthActivationUpdateWhere
+	updateWhat?: IUpdateAuthActivationUpdateWhat
 	pointer: string
 }
 
 export interface IUpdateAuthActivationUpdateWhere {
-
-	_id?: string,
+	_id?: string
 
 	uId?: string
 	accountActivationToken?: string
@@ -57,9 +56,8 @@ export interface IUpdateAuthActivationUpdateWhat {
 	accountActivationToken?: string
 	accountActivationExpires?: number
 
-	passwordResetToken?: string,
+	passwordResetToken?: string
 	passwordResetExpires?: number
-
 }
 
 export interface IAuthDocument extends Document {

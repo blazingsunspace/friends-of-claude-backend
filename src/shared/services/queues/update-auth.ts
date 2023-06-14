@@ -1,4 +1,4 @@
-import {IAuthUpdate } from '@auth/interfaces/auth.interface'
+import { IAuthUpdate } from '@auth/interfaces/auth.interface'
 import { BaseQueue } from '@services/queues/base.queue'
 import { updateAuthUserToDBWorker } from '@workers/update-auth.worker'
 

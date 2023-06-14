@@ -60,9 +60,11 @@ export class ChattyServer {
 		app.set('trust proxy', true)
 		app.use(hpp())
 		app.use(helmet())
-		app.use(bodyParser.json({
-			type: '*/*'
-		}))
+		app.use(
+			bodyParser.json({
+				type: '*/*'
+			})
+		)
 		app.use(
 			cors({
 				origin: '*' /* config.CLIENT_URL */,
@@ -97,7 +99,6 @@ export class ChattyServer {
 
 	private async startServer(app: Application): Promise<void> {
 		try {
-
 			const server: spdy.server.Server = spdy.createServer(options, app)
 			const socketIO: Server = await this.createSocketIO(server)
 			this.startHttpServer(server)

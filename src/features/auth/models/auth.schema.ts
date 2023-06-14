@@ -6,10 +6,10 @@ const SALT_ROUND = 10
 
 const authSchema: Schema = new Schema<IAuthDocument>(
 	{
-		_id: { type: String, required: true, index: true },
+		_id: { type: String, required: true },
 		username: { type: String },
 		uId: { type: String },
-		email: { type: String },
+		email: { type: String, index: true },
 		password: { type: String },
 		role: { type: Number, default: 1 },
 		avatarColor: { type: String },

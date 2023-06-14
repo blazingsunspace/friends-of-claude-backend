@@ -1,4 +1,3 @@
-
 import { AuthPayload, IAuthDocument, IAuthUpdate } from '@auth/interfaces/auth.interface'
 import { Helpers } from '@globals/helpers/helpers'
 import { AuthModel } from '@auth/models/auth.schema'
@@ -31,7 +30,6 @@ class AuthService {
 
 	public async updateAuthUserToDB(data: IAuthUpdate): Promise<void> {
 		AuthService.prototype.doTransaction(async () => {
-
 			switch (data.pointer) {
 				case 'accountActivation':
 					await AuthModel.updateOne(
@@ -55,14 +53,12 @@ class AuthService {
 						},
 						{
 							passwordResetToken: data.updateWhat?.passwordResetToken,
-							passwordResetExpires: data.updateWhat?.passwordResetExpires,
+							passwordResetExpires: data.updateWhat?.passwordResetExpires
 						}
 					).exec()
 					break
 
 				case 'setAdmin':
-
-
 					await AuthModel.updateOne(
 						{
 							_id: data.updateWhere._id
@@ -87,6 +83,7 @@ class AuthService {
 					break
 
 				case 'approveAccountCreation':
+					console.log('sotirrrrrrrrrrrrrr')
 					await AuthModel.updateOne(
 						{
 							_id: data.updateWhere._id
@@ -109,10 +106,7 @@ class AuthService {
 					).exec()
 
 					break
-
 			}
-
-
 		})
 	}
 
@@ -121,7 +115,6 @@ class AuthService {
 			await AuthModel.create(data)
 		})
 	}
-
 
 	public async getUserByPasswordTokenAndUId(token: string, uId: string): Promise<IAuthDocument> {
 		const user: IAuthDocument = (await AuthModel.findOne({
@@ -144,24 +137,14 @@ class AuthService {
 	}
 
 	public async getUserByUsername(username: string): Promise<IAuthDocument> {
-
-
-
-
 		const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((([a-zA-Z\-0-9])+\.+[a-zA-Z]{2,}))$/
 		const ok = re.test(username)
 
-
-
 		if (ok) {
-
-
 			return (await AuthModel.findOne({ email: username }).exec()) as IAuthDocument
 		}
 
 		return (await AuthModel.findOne({ username }).exec()) as IAuthDocument
-
-
 	}
 
 	public async getAuthUserByUsername(username: string): Promise<IAuthDocument> {
