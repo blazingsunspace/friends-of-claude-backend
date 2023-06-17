@@ -31,7 +31,7 @@ async function setNewPassword(token: string, uId: string, password: string) {
 	new EmailQueue('sendPasswordResetConfiramtion', {
 		template,
 		receiverEmail: existingUser.email!,
-		subject: 'Account activated Confirmation 34223'
+		subject: 'Password successfully set'
 	})
 }
 

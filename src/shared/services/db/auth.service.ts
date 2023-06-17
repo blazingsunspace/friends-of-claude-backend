@@ -140,6 +140,14 @@ class AuthService {
 
 		return user
 	}
+	public async getUserByPasswordTokenAndUIdWithoutExpiration(token: string, uId: string): Promise<IAuthDocument> {
+		const user: IAuthDocument = (await AuthModel.findOne({
+			passwordResetToken: token,
+			uId: uId
+		}).exec()) as IAuthDocument
+
+		return user
+	}
 
 	public async getUserByAccountActivationTokenAndUIdWithoutExpiration(token: string, uId: string): Promise<IAuthDocument> {
 		const user: IAuthDocument = (await AuthModel.findOne({

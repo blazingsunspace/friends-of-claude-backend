@@ -16,7 +16,7 @@ class AuthRoutes {
 	}
 
 	public routes(): Router {
-		this.router.post('/signup', authMiddleware.signOutVerify, SignUp.prototype.create)
+		this.router.post('/signup/:invitationToken?', authMiddleware.signOutVerify, SignUp.prototype.create)
 
 		this.router.post(
 			'/signin',
@@ -40,10 +40,9 @@ class AuthRoutes {
 			authMiddleware.signOutVerify,
 			SignIn.prototype.read
 		)
-		this.router.post('/forgot-password', authMiddleware.signOutVerify, Password.prototype.create)
+		this.router.post('/forgot-password', Password.prototype.create)
 		this.router.post('/reset-password/:uId/:token', Password.prototype.update)
 		this.router.post('/activate-account/:uId/:token', authMiddleware.signOutVerify, ActivateAccount.prototype.activate)
-		this.router.post('/set-password/:uId/:token', authMiddleware.signOutVerify, ActivateAccount.prototype.setPassword)
 		this.router.post('/resend-account-activation', authMiddleware.signOutVerify, ActivateAccount.prototype.resendAccountActivation)
 		return this.router
 	}

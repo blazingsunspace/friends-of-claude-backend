@@ -6,6 +6,7 @@ import { authMiddleware } from '@globals/helpers/auth-midleware'
 import { adminRoutes } from '@auth/routes/adminRoutes'
 import { superAdminRoutes } from '@auth/routes/superAdminRoutes'
 import { ExpressAdapter } from '@bull-board/express'
+import { invitationRoutes } from '@invitations/routes/invitationRoutes'
 
 const BASE_PATH = '/api/v1'
 
@@ -28,6 +29,9 @@ export class ApplicationRoutes {
 		this.app.use(BASE_PATH, authRoutes.signOutRoute())
 
 		//authenticated routes
+
+		this.app.use(BASE_PATH, authMiddleware.verifyUser, invitationRoutes.routes())
+
 		this.app.use(BASE_PATH, authMiddleware.verifyUser, currentUserRoutes.routes())
 		this.app.use(BASE_PATH, authMiddleware.verifyUser, adminRoutes.routes())
 
