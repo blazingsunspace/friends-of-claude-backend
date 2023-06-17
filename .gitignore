@@ -146,3 +146,4 @@ build
 
 # End of https://www.toptal.com/developers/gitignore/api/node
 *.pem
+poeditor-config.json
