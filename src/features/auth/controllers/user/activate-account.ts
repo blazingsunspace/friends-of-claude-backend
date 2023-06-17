@@ -174,44 +174,5 @@ export class ActivateAccount {
 		}
 	}
 
-	@joiValidation(passwordSchema)
-	public async setPassword(req: Request, res: Response): Promise<void> {
-		const { token, uId, password, confirmPassword } = req.body
 
-		if (!token) {
-			throw new BadRequestError('cant reset password without token')
-		}
-
-		if (!token && !uId) {
-			throw new BadRequestError('cant activate account without token and id')
-		}
-
-		//postoji validacija na schemi
-		if (password !== confirmPassword) {
-			throw new BadRequestError('Passwords do not match')
-		}
-
-		const existingUser: IAuthDocument = await authService.getUserByAccountActivationTokenAndUId(token, uId)
-
-		if (!existingUser) {
-			const existingUserWithoutExpiration: IAuthDocument = await authService.getUserByAccountActivationTokenAndUIdWithoutExpiration(
-				token,
-				uId
-			)
-			if (!existingUserWithoutExpiration) {
-				throw new BadRequestError('can not find user with that token uid combination33')
-			}
-
-			res
-				.status(HTTP_STATUS.UNAUTHORIZED)
-				.json({ message: 'Your token for activation has been expired 22', data: { resendActivationEmail: true } })
-		} else {
-			await setNewPassword(token, uId, password)
-			existingUser.setPassword = false
-
-			res.status(HTTP_STATUS.OK).json({
-				message: 'You successfully set your password for first time. Now You can use FOC app.'
-			})
-		}
-	}
 }

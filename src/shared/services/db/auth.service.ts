@@ -126,6 +126,7 @@ class AuthService {
 	}
 
 	public async createAuthUser(data: IAuthDocument): Promise<void> {
+
 		AuthService.prototype.doTransaction(async () => {
 			await AuthModel.create(data)
 		})
@@ -136,6 +137,14 @@ class AuthService {
 			passwordResetToken: token,
 			uId: uId,
 			passwordResetExpires: { $gt: new Date().getTime() }
+		}).exec()) as IAuthDocument
+
+		return user
+	}
+	public async getUserByPasswordTokenAndUIdWithoutExpiration(token: string, uId: string): Promise<IAuthDocument> {
+		const user: IAuthDocument = (await AuthModel.findOne({
+			passwordResetToken: token,
+			uId: uId
 		}).exec()) as IAuthDocument
 
 		return user

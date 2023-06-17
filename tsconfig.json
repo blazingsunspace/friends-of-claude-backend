@@ -38,6 +38,12 @@
 			}
 		],
 		"paths": {
+			"@i18n/*": [
+				"i18n/*"
+			],
+			"@invitations/*": [
+				"src/features/invitations/*"
+			],
 			"@user/*": [
 				"src/features/user/*"
 			],

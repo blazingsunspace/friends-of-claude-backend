@@ -30,9 +30,13 @@ export class SignIn {
 			throw new BadRequestError('account not activated')
 		}
 
-		const user: IUserDocument = await userService.getUserByAuthId(`${existingUser!._id}`)
+		SignIn.prototype.login(existingUser, req, res, `${existingUser._id}`, false )
+	}
 
-		const userInfId: IUserDocument = (await userService.getUserByAuthId(`${existingUser!._id}`)) as IUserDocument
+	public async login(existingUser: IAuthDocument, req: Request, res:Response, _id: string, setPasswordFirstTime:boolean): Promise<void> {
+		const user: IUserDocument = await userService.getUserByAuthId(_id)
+
+		const userInfId: IUserDocument = (await userService.getUserByAuthId(_id)) as IUserDocument
 
 		const userJwt: string = JWT.sign(
 			{
@@ -54,6 +58,12 @@ export class SignIn {
 			createdAt: existingUser.createdAt
 		} as IUserDocument
 
-		res.status(HTTP_STATUS.OK).json({ message: 'user login succesfuly', user: userDocuments, token: userJwt })
+		if (setPasswordFirstTime){
+			res.status(HTTP_STATUS.OK).json({ message: 'You successfuly setted your password for first time. You are automaticly logged in', user: userDocuments, token: userJwt })
+		}else{
+			res.status(HTTP_STATUS.OK).json({ message: 'user login succesfuly', user: userDocuments, token: userJwt })
+		}
+
+
 	}
 }

@@ -28,7 +28,9 @@ import { signupSchema } from '@auth/schemes/signup'
 import { userService } from '@services/db/user.service'
 import Logger from 'bunyan'
 
-import { createRandomCharacters } from './helpers/create-random-characters'
+import { createRandomCharacters } from '@auth/controllers/user/helpers/create-random-characters'
+import { IInvitationsDocument } from '@invitations/interfaces/invitations.interface'
+import { invitationService } from '@services/db/invitations.service'
 
 const userCache: UserCache = new UserCache()
 
@@ -52,6 +54,28 @@ export class SignUp {
 			imStatus,
 			acceptTermsAndConditions
 		} = req.body
+
+		const { invitationToken } = req.params
+
+		let invitationHelp = false
+
+		if (invitationToken) {
+			const invitation: IInvitationsDocument = await invitationService.getInvitationByInvitationToken(`${invitationToken}`)
+			if (!invitation) {
+				const invitationWithoutExpiration: IInvitationsDocument = await invitationService.getInvitationByInvitationTokenWithoutExpiration(`${invitationToken}`)
+
+				if (!invitationWithoutExpiration) {
+					throw new BadRequestError('can not find invitation with that invitationToken ')
+				}
+
+				res
+					.status(HTTP_STATUS.UNAUTHORIZED)
+					.json({ message: 'Your token for activation has been expired', data: { resendInvitationToken: true } })
+			} else{
+				invitationHelp = true
+			}
+
+		}
 
 		if (!acceptTermsAndConditions) {
 			throw new UserDidNotAcceptTermsAndConditions('User did not accepted terms and conditions')
@@ -95,6 +119,18 @@ export class SignUp {
 
 		const randomCharacters: string = await createRandomCharacters()
 
+		const approvedByAdmin = existingUserHelper || invitationHelp
+			? existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin
+				? true
+				: false
+			: false
+
+		const setPassword = existingUserHelper && !invitationHelp
+			? existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin
+				? true
+				: false
+			: false
+
 		const authData: IAuthDocument = SignUp.prototype.sigunupData({
 			_id: authObjectId,
 			uId,
@@ -102,22 +138,15 @@ export class SignUp {
 			email,
 			password,
 			avatarColor,
-			approvedByAdmin: existingUserHelper
-				? existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin
-					? true
-					: false
-				: false,
-			setPassword: existingUserHelper
-				? existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin
-					? true
-					: false
-				: false,
+			approvedByAdmin: approvedByAdmin,
+			setPassword: setPassword,
 			nottifyMeIfUsedInDocumentary,
 			listMeInDirectory,
 			listMyTestemonials,
 			imStatus,
-			accountActivationToken: randomCharacters,
-			accountActivationExpires: new Date().getTime() + 1000 * 60 * 60
+			accountActivationToken: invitationHelp ? '': randomCharacters,
+			accountActivationExpires: invitationHelp ? 0 : new Date().getTime() + 1000 * 60 * 60,
+			activatedByEmail: invitationHelp ? true : false
 		})
 
 		const result: UploadApiResponse = (await uploads(avatarImage, `${userObjectId}`, true, true)) as UploadApiResponse
@@ -138,32 +167,33 @@ export class SignUp {
 		new UserQueue('addUserToDB', userDataForCache)
 
 		/*
-		const prisma = new PrismaClient({
-			log: ['query']
-		})
-
-
-		async function main() {
-			const data: AuthPostgres = {
-				data: {
-					email: 'ariadne@prisma.io',
-					username: 'Ariadne',
-					role: 'USER',
-					password: 'milner'
-				},
-			} as unknown as AuthPostgres
-			const profile = await prisma.user.create(data)
-		}
-
-		main()
-			.then(async () => {
-				await prisma.$disconnect()
+			const prisma = new PrismaClient({
+				log: ['query']
 			})
-			.catch(async (e) => {
-				console.error(e)
-				await prisma.$disconnect()
-				process.exit(1)
-			}) */
+
+
+			async function main() {
+				const data: AuthPostgres = {
+					data: {
+						email: 'ariadne@prisma.io',
+						username: 'Ariadne',
+						role: 'USER',
+						password: 'milner'
+					},
+				} as unknown as AuthPostgres
+				const profile = await prisma.user.create(data)
+			}
+
+			main()
+				.then(async () => {
+					await prisma.$disconnect()
+				})
+				.catch(async (e) => {
+					console.error(e)
+					await prisma.$disconnect()
+					process.exit(1)
+				})
+		*/
 
 		if (
 			existingUserHelper
@@ -179,7 +209,7 @@ export class SignUp {
 
 			const template: string = accountCreatedByAdminTemplate.accountCreatedByAdminTemplateTemplate(templateParams)
 
-			new EmailQueue('sendAccountCreatedByAdminEmail', { template, receiverEmail: email, subject: 'Account activation 44' })
+			new EmailQueue('sendAccountCreatedByAdminEmail', { template, receiverEmail: email, subject: 'Account created by admin for you 44' })
 		} else {
 			const activateLink = `${config.CLIENT_URL}/activate-account?uId=${uId}&token=${randomCharacters}`
 
@@ -228,7 +258,8 @@ export class SignUp {
 			setPassword,
 			listMeInDirectory,
 			listMyTestemonials,
-			imStatus
+			imStatus,
+			activatedByEmail
 		} = data
 		const currentTimestam = new Date()
 		return {
@@ -243,6 +274,7 @@ export class SignUp {
 			listMyTestemonials,
 			imStatus,
 			approvedByAdmin,
+			activatedByEmail,
 			setPassword,
 			createdAt: currentTimestam,
 			updatedAt: currentTimestam,

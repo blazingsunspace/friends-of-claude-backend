@@ -113,6 +113,7 @@ export interface ISignUpData {
 	accountActivationExpires: number
 	approvedByAdmin?: boolean
 	setPassword?: boolean
+	activatedByEmail?: boolean
 }
 
 export interface IAuthJob {

@@ -8,6 +8,7 @@ import { BullMQAdapter } from '@bull-board/api/bullMQAdapter'
 import { serverAdapter } from './../../../routes'
 import { IEmailJob, IUserDocument } from '@user/interfaces/user.interface'
 import { IAuthDocument, IAuthUpdate } from '@auth/interfaces/auth.interface'
+import { IInvitationsDocument } from '@invitations/interfaces/invitations.interface'
 
 const bullAdapters: BullMQAdapter[] = []
 
@@ -66,7 +67,7 @@ export abstract class BaseQueue {
 		})
 	}
 
-	protected async addJobToQueue<T>(name: string, data: IAuthDocument | IUserDocument | IEmailJob | IAuthUpdate): Promise<Job<T>> {
+	protected async addJobToQueue<T>(name: string, data: IAuthDocument | IUserDocument | IEmailJob | IAuthUpdate | IInvitationsDocument): Promise<Job<T>> {
 		return this.queue.add(name, data, this.DEFAULT_REMOVE_CONFIG)
 	}
 }

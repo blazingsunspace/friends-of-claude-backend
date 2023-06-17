@@ -1,3 +1,4 @@
+import { SignIn } from '@auth/controllers/user/signin'
 import { Request, Response } from 'express'
 import { config } from '@src/config'
 import HTTP_STATUS from 'http-status-codes'
@@ -12,12 +13,12 @@ import EmailQueue from '@services/queues/email.queue'
 
 import { setNewPassword } from '@auth/controllers/user/helpers/set-new-password'
 import UpdateAuthQueue from '@services/queues/update-auth'
-import { passwordSchema } from '@auth/schemes/password'
+import { emailSchema, passwordSchema } from '@auth/schemes/password'
 import { joiValidation } from '@globals/decorators/joi-validation.decorators'
-import { createRandomCharacters } from './helpers/create-random-characters'
+import { createRandomCharacters } from '@auth/controllers/user/helpers/create-random-characters'
 
 export class Password {
-	@joiValidation(passwordSchema)
+	@joiValidation(emailSchema)
 	public async create(req: Request, res: Response): Promise<void> {
 		const { email } = req.body
 		const existingUser: IAuthDocument = await authService.getAuthUserByEmail(email)
@@ -63,8 +64,35 @@ export class Password {
 			throw new BadRequestError('Passwords do not match')
 		}
 
-		await setNewPassword(token, uId, password)
+		const existingUser: IAuthDocument = await authService.getUserByPasswordTokenAndUId(token, uId)
 
-		res.status(HTTP_STATUS.OK).json({ message: 'Password successfuly reset.' })
+		if (!existingUser) {
+			const existingUserWithoutExpiration: IAuthDocument = await authService.getUserByPasswordTokenAndUIdWithoutExpiration(
+				token,
+				uId
+			)
+			if (!existingUserWithoutExpiration) {
+				throw new BadRequestError('there is no that passwordToken and uid combination')
+			}
+
+			res
+				.status(HTTP_STATUS.UNAUTHORIZED)
+				.json({ message: 'Your token for reset password has been expired', data: { resetPaswordTokenExpired: true } })
+
+		}else{
+			if (existingUser.setPassword) {
+				await setNewPassword(token, uId, password)
+
+				SignIn.prototype.login(existingUser, req, res, `${existingUser._id}`,true)
+
+			}else{
+				await setNewPassword(token, uId, password)
+
+				res.status(HTTP_STATUS.OK).json({ message: 'Password successfuly reset.' })
+			}
+		}
+
+
+
 	}
 }

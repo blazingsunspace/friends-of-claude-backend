@@ -4,6 +4,13 @@ import cloudinary from 'cloudinary'
 
 import bunyan from 'bunyan'
 
+
+
+import en from './../i18n/en.json'
+import it from './../i18n/it.json'
+import fr from './../i18n/fr.json'
+import de from './../i18n/de.json'
+
 dotenv.config({})
 
 interface constants {
@@ -17,6 +24,8 @@ interface userRoles {
 	admin: number
 	superAdmin: number
 }
+
+
 
 const constants: constants = {
 	userRoles: {
@@ -44,7 +53,7 @@ class Config {
 	public SENDER_EMAIL_PASSWORD: string | undefined
 	public SENDGRID_API_KEY: string | undefined
 	public SENDGRID_SENDER: string | undefined
-
+	public I18N: string
 	public CONSTANTS: constants
 
 	private readonly DEFAULT_DATABASE_URL = 'mongodb://localhost:27017/friends-of-claude'
@@ -66,7 +75,12 @@ class Config {
 		this.SENDER_EMAIL_PASSWORD = process.env.SENDER_EMAIL_PASSWORD || ''
 		this.SENDGRID_API_KEY = process.env.SENDGRID_API_KEY || ''
 		this.SENDGRID_SENDER = process.env.SENDGRID_SENDER || ''
-
+		this.I18N = JSON.stringify({
+			en,
+			it,
+			fr,
+			de
+		})
 		this.CONSTANTS = constants
 	}
 

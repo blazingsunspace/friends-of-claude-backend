@@ -3,6 +3,7 @@ import express from 'express'
 import { FriendsOfClaudeServer } from '@src/setupServer'
 
 import databaseConnection from '@src/setupDatabase'
+// eslint-disable-next-line @typescript-eslint/no-var-requires
 
 /* import sentryConnection from '@src/sentryConnection' */
 

@@ -44,6 +44,12 @@ export interface IResetPasswordParams {
 export interface IAccountApproveParams {
 	username: string
 }
+
+export interface IInviteUserParams {
+	username: string
+	activateLink: string
+}
+
 export interface IAccountDisapproveParams {
 	username: string
 }
