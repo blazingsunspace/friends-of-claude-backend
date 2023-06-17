@@ -52,7 +52,7 @@ export class Helpers {
 
 			if (typeof i18n[language] !== 'undefined' && typeof i18n[language] === 'object') {
 				const result = i18n[language].filter((term: any) => term.term === poTranslateStringName)
-				const resultPoString = result[0]?.definition.one
+				const resultPoString = result[0]?.definition.one ? result[0]?.definition.one : result[0]?.definition
 
 
 				if (typeof resultPoString !== 'undefined' && resultPoString.length > 0) {

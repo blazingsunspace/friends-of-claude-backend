@@ -4,7 +4,7 @@ import { AuthModel } from '@auth/models/auth.schema'
 import { config } from '@src/config'
 import Logger from 'bunyan'
 import mongoose from 'mongoose'
-import { IInvitationsDocument } from '@invitations/interfaces/invitations.interface'
+import { IInvitationUpdate, IInvitationsDocument } from '@invitations/interfaces/invitations.interface'
 import { InvitationsModel } from '@invitations/models/invitations.schema'
 
 const log: Logger = config.createLogger('invitationService')
@@ -30,6 +30,29 @@ class InvitationService {
 		}
 	}
 
+
+	public async updateInvitationToDB(data: IInvitationUpdate): Promise<void> {
+		InvitationService.prototype.doTransaction(async () => {
+			switch (data.pointer) {
+
+				case 'validateInvitation':
+					await InvitationsModel.updateOne(
+						{
+							email: data.updateWhere.email
+						},
+						{
+							authId: data.updateWhat?.authId,
+							accountCreated: data.updateWhat?.accountCreated,
+							invitationToken: data.updateWhat?.invitationToken,
+							invitationTokenExpires: data.updateWhat?.invitationTokenExpires
+						}
+					).exec()
+					break
+
+
+			}
+		})
+	}
 
 	public async addInvitationToDb(data: IInvitationsDocument): Promise<void> {
 		InvitationService.prototype.doTransaction(async () => {

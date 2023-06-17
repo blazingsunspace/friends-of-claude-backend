@@ -2,7 +2,7 @@ import HTTP_STATUS from 'http-status-codes'
 import { ObjectId } from 'mongodb'
 import { Request, Response } from 'express'
 
-import { AuthPayload, IAuthDocument, ISignUpData } from '@auth/interfaces/auth.interface'
+import { AuthPayload, IAuthDocument, IAuthUpdate, ISignUpData } from '@auth/interfaces/auth.interface'
 import { authService } from '@services/db/auth.service'
 import { BadRequestError, NotAcceptableError, UserDidNotAcceptTermsAndConditions } from '@globals/helpers/error-handler'
 import { Helpers } from '@globals/helpers/helpers'
@@ -29,8 +29,9 @@ import { userService } from '@services/db/user.service'
 import Logger from 'bunyan'
 
 import { createRandomCharacters } from '@auth/controllers/user/helpers/create-random-characters'
-import { IInvitationsDocument } from '@invitations/interfaces/invitations.interface'
+import { IInvitationUpdate, IInvitationsDocument, IUpdateInvitationUpdateWhat } from '@invitations/interfaces/invitations.interface'
 import { invitationService } from '@services/db/invitations.service'
+import UpdateInvitationQueue from '@services/queues/update-invitation.queue'
 
 const userCache: UserCache = new UserCache()
 
@@ -42,6 +43,8 @@ let existingUserHelper: any
 export class SignUp {
 	@joiValidation(signupSchema)
 	public async create(req: Request, res: Response): Promise<void> {
+
+
 		const {
 			username,
 			email,
@@ -56,29 +59,37 @@ export class SignUp {
 		} = req.body
 
 		const { invitationToken } = req.params
-
+		const language: string = req.headers['accept-language'] ?? 'en'
 		let invitationHelp = false
 
 		if (invitationToken) {
 			const invitation: IInvitationsDocument = await invitationService.getInvitationByInvitationToken(`${invitationToken}`)
 			if (!invitation) {
+
 				const invitationWithoutExpiration: IInvitationsDocument = await invitationService.getInvitationByInvitationTokenWithoutExpiration(`${invitationToken}`)
 
 				if (!invitationWithoutExpiration) {
-					throw new BadRequestError('can not find invitation with that invitationToken ')
+
+					throw new BadRequestError(Helpers.getPoTranslate(language, 'SIGN_UP_CAN_NOT_FIND_INVITATION_TOKEN'))
 				}
 
-				res
-					.status(HTTP_STATUS.UNAUTHORIZED)
-					.json({ message: 'Your token for activation has been expired', data: { resendInvitationToken: true } })
-			} else{
+				res.status(HTTP_STATUS.UNAUTHORIZED).json({
+					message: Helpers.getPoTranslate(language, 'SIGN_UP_YOUR_TOKEN_FOR_ACTIVATION_HAS_BEEN_EXPIRED'),
+					data: { resendInvitationToken: true }
+				})
+
+				return
+
+			} else {
 				invitationHelp = true
 			}
 
 		}
 
+
+
 		if (!acceptTermsAndConditions) {
-			throw new UserDidNotAcceptTermsAndConditions('User did not accepted terms and conditions')
+			throw new UserDidNotAcceptTermsAndConditions(Helpers.getPoTranslate(language, 'SIGN_UP_USER_DID_NOT_ACCEPTED_TERMS_AND_CONDITIONS'))
 		}
 
 		const checkIfUserExist: IAuthDocument = await authService.getUserByUsername(username)
@@ -92,11 +103,13 @@ export class SignUp {
 				const existingProfile: IUserDocument = await userService.getUserByAuthId(`${payload._id}`)
 
 				if (existingUser == null || existingProfile == null) {
-					throw new NotAcceptableError('Bearer token is not valid')
+
+					throw new NotAcceptableError(Helpers.getPoTranslate(language, 'SIGN_UP_BEARER_TOKEN_IS_NOT_VALID'))
 				}
 
 				if (!(existingUser.role == config.CONSTANTS.userRoles.admin || existingUser.role == config.CONSTANTS.userRoles.superAdmin)) {
-					throw new NotAcceptableError('You allready have account, you can not use sing up route')
+					throw new NotAcceptableError(Helpers.getPoTranslate(language, 'SIGN_UP_YOU_ALREADY_HAVE_ACCOUNT'))
+
 				}
 
 				existingUser.authId = existingProfile._id
@@ -104,13 +117,13 @@ export class SignUp {
 
 				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			} catch (error: any) {
-				log.error('Bearer token is expired', error)
+				log.error(Helpers.getPoTranslate(language, 'SIGN_UP_BEARER_TOKEN_IS_EXPIRED'), error)
 				throw new NotAcceptableError(error)
 			}
 		}
 
 		if (checkIfUserExist) {
-			throw new NotAcceptableError('User Allready Exist')
+			throw new NotAcceptableError(Helpers.getPoTranslate(language, 'SIGN_UP_USER_ALREADY_EXIST'))
 		}
 
 		const authObjectId: ObjectId = new ObjectId()
@@ -144,7 +157,7 @@ export class SignUp {
 			listMeInDirectory,
 			listMyTestemonials,
 			imStatus,
-			accountActivationToken: invitationHelp ? '': randomCharacters,
+			accountActivationToken: invitationHelp ? '' : randomCharacters,
 			accountActivationExpires: invitationHelp ? 0 : new Date().getTime() + 1000 * 60 * 60,
 			activatedByEmail: invitationHelp ? true : false
 		})
@@ -152,20 +165,34 @@ export class SignUp {
 		const result: UploadApiResponse = (await uploads(avatarImage, `${userObjectId}`, true, true)) as UploadApiResponse
 
 		if (!result?.public_id) {
-			throw new BadRequestError('File upload: error occured. try again.')
+			throw new BadRequestError(Helpers.getPoTranslate(language, 'SIGN_UP_FILE_UPLOAD_ERROR'))
 		}
-
 		//add redis cache
 		const userDataForCache: IUserDocument = SignUp.prototype.userData(authData, userObjectId)
 		userDataForCache.profilePicture = `https://res.cloudinary.com/deztrt9eh/image/upload/v${result.version}/${userObjectId}`
 		await userCache.saveUserToCache(`${userObjectId}`, uId, userDataForCache)
-
 		//add to database
 		omit(userDataForCache, ['uId', 'username', 'email', 'avatarColour', 'password'])
 
 		new AuthQueue('addAuthUserToDB', authData)
 		new UserQueue('addUserToDB', userDataForCache)
+		if (invitationHelp) {
 
+			const query: IInvitationUpdate = {
+				updateWhere: {
+					email: email
+				},
+				updateWhat: {
+					authId: authObjectId,
+					accountCreated: true,
+					invitationToken: '',
+					invitationTokenExpires: 0
+				},
+				pointer: 'validateInvitation'
+			}
+
+			new UpdateInvitationQueue('updateInvitationToDB', query)
+		}
 		/*
 			const prisma = new PrismaClient({
 				log: ['query']

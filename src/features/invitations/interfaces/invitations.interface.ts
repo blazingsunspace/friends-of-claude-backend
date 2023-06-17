@@ -15,6 +15,22 @@ export interface IInvitationsDocument extends Document {
 	deleted?: boolean
 }
 
+export interface IInvitationUpdate {
+	updateWhere: IUpdateInvitationUpdateWhere
+	updateWhat?: IUpdateInvitationUpdateWhat
+	pointer: string
+}
+
+export interface IUpdateInvitationUpdateWhere {
+	email: string
+}
+export interface IUpdateInvitationUpdateWhat {
+	authId?: string | ObjectId
+	accountCreated?: boolean
+	invitationToken?: string
+	invitationTokenExpires?: number
+}
+
 export interface IInvitationsCreate {
 	_id: string | ObjectId
 	email: string
