@@ -1,10 +1,12 @@
-import express, { Express } from 'express'
+import express from 'express'
 
-import { ChattyServer } from './setupServer'
+import { FriendsOfClaudeServer } from '@src/setupServer'
 
-import databaseConnection from './setupDatabase'
+import databaseConnection from '@src/setupDatabase'
 
-import { config } from './config'
+/* import sentryConnection from '@src/sentryConnection' */
+
+import { config } from '@src/config'
 
 class Application {
 	public initialize(): void {
@@ -12,14 +14,16 @@ class Application {
 
 		databaseConnection()
 
-		const app: Express = express()
-		const server: ChattyServer = new ChattyServer(app)
+		const app: express.Application = express()
+
+		const server: FriendsOfClaudeServer = new FriendsOfClaudeServer(app)
 
 		server.start()
 	}
 
 	private loadConfig(): void {
 		config.validateConfig()
+		config.cloadinaryConfig()
 	}
 }
 

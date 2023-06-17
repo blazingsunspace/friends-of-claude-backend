@@ -1,5 +1,7 @@
 # Created by https://www.toptal.com/developers/gitignore/api/node
 # Edit at https://www.toptal.com/developers/gitignore?templates=node
+*.cert
+*.key
 
 ### Node ###
 # Logs
@@ -95,6 +97,7 @@ out
 .nuxt
 dist
 
+build
 # Gatsby files
 .cache/
 # Comment in the public line in if your project uses Gatsby and not Next.js
@@ -142,3 +145,5 @@ dist
 .svelte-kit
 
 # End of https://www.toptal.com/developers/gitignore/api/node
+*.pem
+poeditor-config.json
