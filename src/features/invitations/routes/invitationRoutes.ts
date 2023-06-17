@@ -10,7 +10,6 @@ class InvitationRoutes {
 	}
 
 	public routes(): Router {
-
 		this.router.post('/invite-user', authMiddleware.adminAuthentification, InviteUser.prototype.read)
 
 		return this.router

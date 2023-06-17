@@ -67,7 +67,10 @@ export abstract class BaseQueue {
 		})
 	}
 
-	protected async addJobToQueue<T>(name: string, data: IAuthDocument | IUserDocument | IEmailJob | IAuthUpdate | IInvitationsDocument | IInvitationUpdate): Promise<Job<T>> {
+	protected async addJobToQueue<T>(
+		name: string,
+		data: IAuthDocument | IUserDocument | IEmailJob | IAuthUpdate | IInvitationsDocument | IInvitationUpdate
+	): Promise<Job<T>> {
 		return this.queue.add(name, data, this.DEFAULT_REMOVE_CONFIG)
 	}
 }

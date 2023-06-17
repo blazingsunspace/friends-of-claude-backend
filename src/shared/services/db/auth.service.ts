@@ -126,7 +126,6 @@ class AuthService {
 	}
 
 	public async createAuthUser(data: IAuthDocument): Promise<void> {
-
 		AuthService.prototype.doTransaction(async () => {
 			await AuthModel.create(data)
 		})

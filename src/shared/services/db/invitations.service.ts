@@ -1,6 +1,3 @@
-import { AuthPayload, IAuthDocument, IAuthUpdate } from '@auth/interfaces/auth.interface'
-import { Helpers } from '@globals/helpers/helpers'
-import { AuthModel } from '@auth/models/auth.schema'
 import { config } from '@src/config'
 import Logger from 'bunyan'
 import mongoose from 'mongoose'
@@ -30,11 +27,9 @@ class InvitationService {
 		}
 	}
 
-
 	public async updateInvitationToDB(data: IInvitationUpdate): Promise<void> {
 		InvitationService.prototype.doTransaction(async () => {
 			switch (data.pointer) {
-
 				case 'validateInvitation':
 					await InvitationsModel.updateOne(
 						{
@@ -48,8 +43,6 @@ class InvitationService {
 						}
 					).exec()
 					break
-
-
 			}
 		})
 	}
@@ -59,7 +52,6 @@ class InvitationService {
 			await InvitationsModel.create(data)
 		})
 	}
-
 
 	public async getInvitationByInvitationToken(invitationToken: string): Promise<IInvitationsDocument> {
 		const invitation: IInvitationsDocument = (await InvitationsModel.findOne({
@@ -77,7 +69,6 @@ class InvitationService {
 
 		return invitation
 	}
-
 }
 
 export const invitationService: InvitationService = new InvitationService()

@@ -67,10 +67,7 @@ export class Password {
 		const existingUser: IAuthDocument = await authService.getUserByPasswordTokenAndUId(token, uId)
 
 		if (!existingUser) {
-			const existingUserWithoutExpiration: IAuthDocument = await authService.getUserByPasswordTokenAndUIdWithoutExpiration(
-				token,
-				uId
-			)
+			const existingUserWithoutExpiration: IAuthDocument = await authService.getUserByPasswordTokenAndUIdWithoutExpiration(token, uId)
 			if (!existingUserWithoutExpiration) {
 				throw new BadRequestError('there is no that passwordToken and uid combination')
 			}
@@ -78,21 +75,16 @@ export class Password {
 			res
 				.status(HTTP_STATUS.UNAUTHORIZED)
 				.json({ message: 'Your token for reset password has been expired', data: { resetPaswordTokenExpired: true } })
-
-		}else{
+		} else {
 			if (existingUser.setPassword) {
 				await setNewPassword(token, uId, password)
 
-				SignIn.prototype.login(existingUser, req, res, `${existingUser._id}`,true)
-
-			}else{
+				SignIn.prototype.login(existingUser, req, res, `${existingUser._id}`, true)
+			} else {
 				await setNewPassword(token, uId, password)
 
 				res.status(HTTP_STATUS.OK).json({ message: 'Password successfuly reset.' })
 			}
 		}
-
-
-
 	}
 }

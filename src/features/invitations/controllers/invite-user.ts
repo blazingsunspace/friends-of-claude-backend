@@ -6,13 +6,11 @@ import Logger from 'bunyan'
 import { ObjectId } from 'mongodb'
 import { config } from '@src/config'
 import { BadRequestError } from '@globals/helpers/error-handler'
-import { authService } from '@services/db/auth.service'
-import { IAuthDocument, IAuthUpdate } from '@auth/interfaces/auth.interface'
+
 import EmailQueue from '@services/queues/email.queue'
 
-import { IAccountApproveParams, IInviteUserParams } from '@user/interfaces/user.interface'
-import { approveAccountCreation } from '@services/emails/templates/approve-account-creation/approve-account-creation'
-import UpdateAuthQueue from '@services/queues/update-auth'
+import { IInviteUserParams } from '@user/interfaces/user.interface'
+
 import InvitationQueue from '@services/queues/invitation.queue'
 import { IInvitationsCreate, IInvitationsDocument } from '@invitations/interfaces/invitations.interface'
 import { createRandomCharacters } from '@auth/controllers/user/helpers/create-random-characters'
@@ -31,11 +29,8 @@ export class InviteUser {
 			throw new BadRequestError('can not invite user without email')
 		}
 
-
 		try {
 			const randomCharacters: string = await createRandomCharacters()
-
-
 
 			const data: IInvitationsDocument = InviteUser.prototype.invitationData({
 				_id: new ObjectId(),
@@ -44,11 +39,9 @@ export class InviteUser {
 				invitationToken: randomCharacters,
 				invitationTokenExpires: new Date().getTime() + 1000 * 60 * 60,
 				invitedBy: req.currentUser?._id
-
 			})
 
 			new InvitationQueue('addInvitationToDB', data)
-
 
 			const activateLink = `${config.CLIENT_URL}/signup/${randomCharacters}`
 
@@ -70,25 +63,14 @@ export class InviteUser {
 				success: true,
 				info: `potential user invited: ${email}`
 			})
-
 		} catch (error) {
 			log.error('user invitation failed')
 			throw new BadRequestError('user invitation failed')
 		}
-
-
 	}
 
 	private invitationData(data: IInvitationsCreate): IInvitationsDocument {
-		const {
-			_id,
-			email,
-			username,
-			invitationToken,
-			invitationTokenExpires,
-			invitedBy
-
-		} = data
+		const { _id, email, username, invitationToken, invitationTokenExpires, invitedBy } = data
 
 		return {
 			_id,

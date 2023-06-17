@@ -2,7 +2,7 @@ import HTTP_STATUS from 'http-status-codes'
 import { ObjectId } from 'mongodb'
 import { Request, Response } from 'express'
 
-import { AuthPayload, IAuthDocument, IAuthUpdate, ISignUpData } from '@auth/interfaces/auth.interface'
+import { AuthPayload, IAuthDocument, ISignUpData } from '@auth/interfaces/auth.interface'
 import { authService } from '@services/db/auth.service'
 import { BadRequestError, NotAcceptableError, UserDidNotAcceptTermsAndConditions } from '@globals/helpers/error-handler'
 import { Helpers } from '@globals/helpers/helpers'
@@ -29,7 +29,7 @@ import { userService } from '@services/db/user.service'
 import Logger from 'bunyan'
 
 import { createRandomCharacters } from '@auth/controllers/user/helpers/create-random-characters'
-import { IInvitationUpdate, IInvitationsDocument, IUpdateInvitationUpdateWhat } from '@invitations/interfaces/invitations.interface'
+import { IInvitationUpdate, IInvitationsDocument } from '@invitations/interfaces/invitations.interface'
 import { invitationService } from '@services/db/invitations.service'
 import UpdateInvitationQueue from '@services/queues/update-invitation.queue'
 
@@ -43,8 +43,6 @@ let existingUserHelper: any
 export class SignUp {
 	@joiValidation(signupSchema)
 	public async create(req: Request, res: Response): Promise<void> {
-
-
 		const {
 			username,
 			email,
@@ -65,11 +63,11 @@ export class SignUp {
 		if (invitationToken) {
 			const invitation: IInvitationsDocument = await invitationService.getInvitationByInvitationToken(`${invitationToken}`)
 			if (!invitation) {
-
-				const invitationWithoutExpiration: IInvitationsDocument = await invitationService.getInvitationByInvitationTokenWithoutExpiration(`${invitationToken}`)
+				const invitationWithoutExpiration: IInvitationsDocument = await invitationService.getInvitationByInvitationTokenWithoutExpiration(
+					`${invitationToken}`
+				)
 
 				if (!invitationWithoutExpiration) {
-
 					throw new BadRequestError(Helpers.getPoTranslate(language, 'SIGN_UP_CAN_NOT_FIND_INVITATION_TOKEN'))
 				}
 
@@ -79,14 +77,10 @@ export class SignUp {
 				})
 
 				return
-
 			} else {
 				invitationHelp = true
 			}
-
 		}
-
-
 
 		if (!acceptTermsAndConditions) {
 			throw new UserDidNotAcceptTermsAndConditions(Helpers.getPoTranslate(language, 'SIGN_UP_USER_DID_NOT_ACCEPTED_TERMS_AND_CONDITIONS'))
@@ -103,13 +97,11 @@ export class SignUp {
 				const existingProfile: IUserDocument = await userService.getUserByAuthId(`${payload._id}`)
 
 				if (existingUser == null || existingProfile == null) {
-
 					throw new NotAcceptableError(Helpers.getPoTranslate(language, 'SIGN_UP_BEARER_TOKEN_IS_NOT_VALID'))
 				}
 
 				if (!(existingUser.role == config.CONSTANTS.userRoles.admin || existingUser.role == config.CONSTANTS.userRoles.superAdmin)) {
 					throw new NotAcceptableError(Helpers.getPoTranslate(language, 'SIGN_UP_YOU_ALREADY_HAVE_ACCOUNT'))
-
 				}
 
 				existingUser.authId = existingProfile._id
@@ -132,17 +124,19 @@ export class SignUp {
 
 		const randomCharacters: string = await createRandomCharacters()
 
-		const approvedByAdmin = existingUserHelper || invitationHelp
-			? existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin
-				? true
+		const approvedByAdmin =
+			existingUserHelper || invitationHelp
+				? existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin
+					? true
+					: false
 				: false
-			: false
 
-		const setPassword = existingUserHelper && !invitationHelp
-			? existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin
-				? true
+		const setPassword =
+			existingUserHelper && !invitationHelp
+				? existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin
+					? true
+					: false
 				: false
-			: false
 
 		const authData: IAuthDocument = SignUp.prototype.sigunupData({
 			_id: authObjectId,
@@ -177,7 +171,6 @@ export class SignUp {
 		new AuthQueue('addAuthUserToDB', authData)
 		new UserQueue('addUserToDB', userDataForCache)
 		if (invitationHelp) {
-
 			const query: IInvitationUpdate = {
 				updateWhere: {
 					email: email

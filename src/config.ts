@@ -4,8 +4,6 @@ import cloudinary from 'cloudinary'
 
 import bunyan from 'bunyan'
 
-
-
 import en from './../i18n/en.json'
 import it from './../i18n/it.json'
 import fr from './../i18n/fr.json'
@@ -24,8 +22,6 @@ interface userRoles {
 	admin: number
 	superAdmin: number
 }
-
-
 
 const constants: constants = {
 	userRoles: {

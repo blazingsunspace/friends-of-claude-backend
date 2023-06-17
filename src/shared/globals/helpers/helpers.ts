@@ -1,6 +1,5 @@
 import { config } from '@src/config'
 
-
 export class Helpers {
 	static firstLetterUppercase(str: string): string {
 		const valueString = str.toLocaleLowerCase()
@@ -42,36 +41,23 @@ export class Helpers {
 
 	*/
 	static getPoTranslate(language: string, poTranslateStringName: string, poArgs = '') {
-
 		const i18n = JSON.parse(config.I18N)
 
-
-
 		if (poArgs.length > 0) {
-
-
 			if (typeof i18n[language] !== 'undefined' && typeof i18n[language] === 'object') {
+				// eslint-disable-next-line @typescript-eslint/no-explicit-any
 				const result = i18n[language].filter((term: any) => term.term === poTranslateStringName)
 				const resultPoString = result[0]?.definition.one ? result[0]?.definition.one : result[0]?.definition
 
-
 				if (typeof resultPoString !== 'undefined' && resultPoString.length > 0) {
-
-
 					const splitPoTag = resultPoString.split(':')
 					let translatedWithArgs = ''
 
-
 					for (let i = 0; i < splitPoTag.length - 1; i++) {
-
-
-
-
 						const position = splitPoTag[i + 1].indexOf(' ')
 
 						splitPoTag[i + 1] = JSON.parse(poArgs)[splitPoTag[i + 1].split(' ')[0]] + splitPoTag[i + 1].slice(position)
 					}
-
 
 					for (let i = 0; i < splitPoTag.length; i++) {
 						translatedWithArgs += splitPoTag[i]
@@ -84,7 +70,7 @@ export class Helpers {
 		}
 
 		if (typeof i18n[language] !== 'undefined' && typeof i18n[language] === 'object') {
-
+			// eslint-disable-next-line @typescript-eslint/no-explicit-any
 			const result = i18n[language].filter((term: any) => term.term === poTranslateStringName)
 			const resultPoString = result[0]?.definition
 

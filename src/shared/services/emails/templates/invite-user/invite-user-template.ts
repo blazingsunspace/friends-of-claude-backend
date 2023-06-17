@@ -1,6 +1,6 @@
 import fs from 'fs'
 import ejs from 'ejs'
-import { IAccountActivateParams, IInviteUserParams } from '@user/interfaces/user.interface'
+import { IInviteUserParams } from '@user/interfaces/user.interface'
 
 class InviteUserTemplate {
 	public inviteUserTemplate(templateParams: IInviteUserParams): string {
