@@ -98,7 +98,7 @@ class AuthService {
 					break
 
 				case 'approveAccountCreation':
-					console.log('sotirrrrrrrrrrrrrr')
+
 					await AuthModel.updateOne(
 						{
 							_id: data.updateWhere._id

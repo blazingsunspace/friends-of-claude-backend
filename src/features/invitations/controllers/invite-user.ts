@@ -61,7 +61,10 @@ export class InviteUser {
 			res.status(HTTP_STATUS.OK).json({
 				message: 'potential user successfully invited',
 				success: true,
-				info: `potential user invited: ${email}`
+				info: `potential user invited: ${email}`,
+				data: config.NODE_ENV === 'development' ? {
+					invitationToken: randomCharacters,
+				} : ''
 			})
 		} catch (error) {
 			log.error('user invitation failed')

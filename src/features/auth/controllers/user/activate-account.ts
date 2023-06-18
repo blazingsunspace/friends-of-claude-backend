@@ -126,6 +126,7 @@ export class ActivateAccount {
 	}
 
 	public async activate(req: Request, res: Response): Promise<void> {
+
 		const { token, uId } = req.params
 
 		if (!token && !uId) {
@@ -157,8 +158,8 @@ export class ActivateAccount {
 					message: 'Your account is created, but you will need to set password before you can continue using FOC app',
 					data: {
 						setPassword: true,
-						uId: existingUser.uId,
-						passwordResetToken: randomCharacters
+						uId: config.NODE_ENV === 'development' ? existingUser.uId : '',
+						passwordResetToken: config.NODE_ENV === 'development' ?  randomCharacters : ''
 					}
 				})
 			} else {

@@ -19,7 +19,7 @@ import 'express-async-errors'
 import { config } from '@src/config'
 
 import { ApplicationRoutes } from '@src/routes'
-import { CustomError, IErrorResponse } from '@globals/helpers/error-handler'
+import { BadRequestError, CustomError, IErrorResponse, NotFoundError } from '@globals/helpers/error-handler'
 import spdy from 'spdy'
 import path from 'path'
 
@@ -53,7 +53,7 @@ export class FriendsOfClaudeServer {
 			cookieSession({
 				name: 'session',
 				keys: [config.SECRET_KEY_ONE!, config.SECRET_KEY_TWO!],
-				maxAge: 2 * 60 * 60 * 1000,
+				maxAge: 2 * 60 * 60 * 1000, /* 2h session for login users*/
 				secure: config.NODE_ENV !== 'development'
 			})
 		)
@@ -85,7 +85,8 @@ export class FriendsOfClaudeServer {
 
 	private globalErrorHandler(app: Application): void {
 		app.all('*', (req: Request, res: Response) => {
-			res.status(HTTP_STATUS.NOT_FOUND).json({ message: `${req.originalUrl} not found` })
+			/* res.status(HTTP_STATUS.NOT_FOUND).json({ message: `${req.originalUrl} not found` }) */
+			throw new NotFoundError(`${req.originalUrl} not found`)
 		})
 
 		app.use((error: IErrorResponse, req: Request, res: Response, next: NextFunction) => {

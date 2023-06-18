@@ -30,10 +30,13 @@ export class SignIn {
 			throw new BadRequestError('account not activated')
 		}
 
-		SignIn.prototype.login(existingUser, req, res, `${existingUser._id}`, false)
+		SignIn.prototype.login(existingUser, req, res, `${existingUser._id}`, 0)
 	}
 
-	public async login(existingUser: IAuthDocument, req: Request, res: Response, _id: string, setPasswordFirstTime: boolean): Promise<void> {
+	public async login(existingUser: IAuthDocument, req: Request, res: Response, _id: string, loginPointer: number): Promise<void> {
+
+
+
 		const user: IUserDocument = await userService.getUserByAuthId(_id)
 
 		const userInfId: IUserDocument = (await userService.getUserByAuthId(_id)) as IUserDocument
@@ -58,14 +61,25 @@ export class SignIn {
 			createdAt: existingUser.createdAt
 		} as IUserDocument
 
-		if (setPasswordFirstTime) {
+		if (loginPointer === 1) { /* this is login after user set password */
 			res.status(HTTP_STATUS.OK).json({
 				message: 'You successfuly setted your password for first time. You are automaticly logged in',
 				user: userDocuments,
 				token: userJwt
 			})
-		} else {
-			res.status(HTTP_STATUS.OK).json({ message: 'user login succesfuly', user: userDocuments, token: userJwt })
+		} else if (loginPointer === 0) { /* this is regular login */
+
+			res.status(HTTP_STATUS.OK).json({
+				message: 'user login succesfuly',
+				user: userDocuments,
+				token: userJwt
+			})
+		} else if (loginPointer === 2) { /* this is regular after sigun up if user is invited from admin */
+			res.status(HTTP_STATUS.OK).json({
+				message: 'You successfuly created account, because you are invited by admin, your account is activated, approwed, and you are automaticly logged in',
+				user: userDocuments,
+				token: userJwt
+			})
 		}
 	}
 }

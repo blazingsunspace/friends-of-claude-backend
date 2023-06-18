@@ -47,7 +47,11 @@ export class Password {
 
 		new EmailQueue('sendResetPasswordEmail', { template, receiverEmail: email, subject: 'Reset your password 2' })
 
-		res.status(HTTP_STATUS.OK).json({ message: 'password reset email send.' })
+		res.status(HTTP_STATUS.OK).json({
+			message: 'password reset email send.', data: config.NODE_ENV === 'development' ? {
+			uId: existingUser.uId,
+			passwordResetToken: randomCharacters
+		} : ''})
 	}
 
 	@joiValidation(passwordSchema)
@@ -79,7 +83,7 @@ export class Password {
 			if (existingUser.setPassword) {
 				await setNewPassword(token, uId, password)
 
-				SignIn.prototype.login(existingUser, req, res, `${existingUser._id}`, true)
+				SignIn.prototype.login(existingUser, req, res, `${existingUser._id}`, 1)
 			} else {
 				await setNewPassword(token, uId, password)
 

@@ -8,7 +8,7 @@ import { BadRequestError, NotAcceptableError, UserDidNotAcceptTermsAndConditions
 import { Helpers } from '@globals/helpers/helpers'
 import { UploadApiResponse } from 'cloudinary'
 import { uploads } from '@globals/helpers/cloudinary-upload'
-import { IAccountActivateParams, IUserDocument } from '@user/interfaces/user.interface'
+import { IAccountActivateParams, IAccountActivatedParams, IAccountCreatedParams, IUserDocument } from '@user/interfaces/user.interface'
 import { UserCache } from '@services/redis/user.cache'
 import { omit } from 'lodash'
 
@@ -32,7 +32,10 @@ import { createRandomCharacters } from '@auth/controllers/user/helpers/create-ra
 import { IInvitationUpdate, IInvitationsDocument } from '@invitations/interfaces/invitations.interface'
 import { invitationService } from '@services/db/invitations.service'
 import UpdateInvitationQueue from '@services/queues/update-invitation.queue'
-
+import { accountCteatedTemplate } from '@services/emails/templates/account-created/account-created-template'
+import moment from 'moment'
+import publicIP from 'ip'
+import { SignIn } from './signin'
 const userCache: UserCache = new UserCache()
 
 const log: Logger = config.createLogger('signUpController')
@@ -56,8 +59,14 @@ export class SignUp {
 			acceptTermsAndConditions
 		} = req.body
 
-		const { invitationToken } = req.params
 		const language: string = req.headers['accept-language'] ?? 'en'
+
+		if (!acceptTermsAndConditions) {
+			throw new UserDidNotAcceptTermsAndConditions(Helpers.getPoTranslate(language, 'SIGN_UP_USER_DID_NOT_ACCEPTED_TERMS_AND_CONDITIONS'))
+		}
+
+		const { invitationToken } = req.params
+
 		let invitationHelp = false
 
 		if (invitationToken) {
@@ -80,39 +89,35 @@ export class SignUp {
 			} else {
 				invitationHelp = true
 			}
-		}
+		} else {
+			if (req.headers.authorization) {
+				try {
+					const payload: AuthPayload = JWT.verify(req.headers.authorization.split(' ')[1], config.JWT_TOKEN!) as AuthPayload
 
-		if (!acceptTermsAndConditions) {
-			throw new UserDidNotAcceptTermsAndConditions(Helpers.getPoTranslate(language, 'SIGN_UP_USER_DID_NOT_ACCEPTED_TERMS_AND_CONDITIONS'))
+					const existingUser: AuthPayload = await authService.getAuthUserById2(`${payload._id}`)
+
+					const existingProfile: IUserDocument = await userService.getUserByAuthId(`${payload._id}`)
+
+					if (existingUser == null || existingProfile == null) {
+						throw new NotAcceptableError(Helpers.getPoTranslate(language, 'SIGN_UP_BEARER_TOKEN_IS_NOT_VALID'))
+					}
+
+					if (!(existingUser?.role == config.CONSTANTS.userRoles.admin || existingUser?.role == config.CONSTANTS.userRoles.superAdmin)) {
+						throw new NotAcceptableError(Helpers.getPoTranslate(language, 'SIGN_UP_YOU_ALREADY_HAVE_ACCOUNT'))
+					}
+
+					existingUser.authId = existingProfile._id
+					existingUserHelper = existingUser
+
+					// eslint-disable-next-line @typescript-eslint/no-explicit-any
+				} catch (error: any) {
+					log.error(Helpers.getPoTranslate(language, 'SIGN_UP_BEARER_TOKEN_IS_EXPIRED'), error)
+					throw new NotAcceptableError(error)
+				}
+			}
 		}
 
 		const checkIfUserExist: IAuthDocument = await authService.getUserByUsername(username)
-
-		if (req.headers.authorization) {
-			try {
-				const payload: AuthPayload = JWT.verify(req.headers.authorization.split(' ')[1], config.JWT_TOKEN!) as AuthPayload
-
-				const existingUser: AuthPayload = await authService.getAuthUserById2(`${payload._id}`)
-
-				const existingProfile: IUserDocument = await userService.getUserByAuthId(`${payload._id}`)
-
-				if (existingUser == null || existingProfile == null) {
-					throw new NotAcceptableError(Helpers.getPoTranslate(language, 'SIGN_UP_BEARER_TOKEN_IS_NOT_VALID'))
-				}
-
-				if (!(existingUser.role == config.CONSTANTS.userRoles.admin || existingUser.role == config.CONSTANTS.userRoles.superAdmin)) {
-					throw new NotAcceptableError(Helpers.getPoTranslate(language, 'SIGN_UP_YOU_ALREADY_HAVE_ACCOUNT'))
-				}
-
-				existingUser.authId = existingProfile._id
-				existingUserHelper = existingUser
-
-				// eslint-disable-next-line @typescript-eslint/no-explicit-any
-			} catch (error: any) {
-				log.error(Helpers.getPoTranslate(language, 'SIGN_UP_BEARER_TOKEN_IS_EXPIRED'), error)
-				throw new NotAcceptableError(error)
-			}
-		}
 
 		if (checkIfUserExist) {
 			throw new NotAcceptableError(Helpers.getPoTranslate(language, 'SIGN_UP_USER_ALREADY_EXIST'))
@@ -125,7 +130,7 @@ export class SignUp {
 		const randomCharacters: string = await createRandomCharacters()
 
 		const approvedByAdmin =
-			existingUserHelper || invitationHelp
+			existingUserHelper
 				? existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin
 					? true
 					: false
@@ -145,8 +150,8 @@ export class SignUp {
 			email,
 			password,
 			avatarColor,
-			approvedByAdmin: approvedByAdmin,
-			setPassword: setPassword,
+			approvedByAdmin: invitationHelp ? true : approvedByAdmin,
+			setPassword: invitationHelp ? false : setPassword,
 			nottifyMeIfUsedInDocumentary,
 			listMeInDirectory,
 			listMyTestemonials,
@@ -155,6 +160,7 @@ export class SignUp {
 			accountActivationExpires: invitationHelp ? 0 : new Date().getTime() + 1000 * 60 * 60,
 			activatedByEmail: invitationHelp ? true : false
 		})
+
 
 		const result: UploadApiResponse = (await uploads(avatarImage, `${userObjectId}`, true, true)) as UploadApiResponse
 
@@ -173,7 +179,7 @@ export class SignUp {
 		if (invitationHelp) {
 			const query: IInvitationUpdate = {
 				updateWhere: {
-					email: email
+					invitationToken: invitationToken
 				},
 				updateWhat: {
 					authId: authObjectId,
@@ -215,7 +221,30 @@ export class SignUp {
 				})
 		*/
 
-		if (
+
+
+		if (invitationHelp) {
+
+
+
+
+			const templateParams: IAccountCreatedParams = {
+				username: authData.username!,
+				email: authData.email!,
+				ipaddress: publicIP.address(),
+				date: moment().format('DD/MM/YY HH:mm')
+			}
+
+			const template: string = accountCteatedTemplate.accountCteatedTemplate(templateParams)
+
+			new EmailQueue('sendAccountCreatedConfirmation', {
+				template,
+				receiverEmail: authData.email!,
+				subject: 'Account Created Confirmation'
+			})
+
+		}
+		else if (
 			existingUserHelper
 				? existingUserHelper.role == config.CONSTANTS.userRoles.admin || existingUserHelper.role == config.CONSTANTS.userRoles.superAdmin
 				: false
@@ -242,8 +271,14 @@ export class SignUp {
 			new EmailQueue('sendAccountActivationEmail', { template, receiverEmail: email, subject: 'Account activation 44' })
 		}
 
-		res.status(HTTP_STATUS.CREATED).json({ message: 'user created succesfuly', user: userDataForCache })
+		res.status(HTTP_STATUS.CREATED).json({
+			message: 'user created succesfuly, now you can log in',
+			user: userDataForCache, data: config.NODE_ENV === 'development' ? { authData } : ''
+		})
+
+
 	}
+
 
 	private signupToken(data: IAuthDocument, userObjectId: ObjectId): string {
 		return JWT.sign(
@@ -311,6 +346,7 @@ export class SignUp {
 			uId,
 			password,
 			avatarColor,
+
 			nottifyMeIfUsedInDocumentary,
 			listMeInDirectory,
 			listMyTestemonials,
@@ -325,6 +361,7 @@ export class SignUp {
 			email,
 			password,
 			avatarColor,
+
 			nottifyMeIfUsedInDocumentary,
 			listMeInDirectory,
 			listMyTestemonials,

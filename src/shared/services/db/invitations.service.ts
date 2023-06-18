@@ -31,9 +31,11 @@ class InvitationService {
 		InvitationService.prototype.doTransaction(async () => {
 			switch (data.pointer) {
 				case 'validateInvitation':
+
+
 					await InvitationsModel.updateOne(
 						{
-							email: data.updateWhere.email
+							invitationToken: data.updateWhere.invitationToken
 						},
 						{
 							authId: data.updateWhat?.authId,
