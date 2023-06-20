@@ -168,7 +168,7 @@ class AuthService {
 		return user
 	}
 
-	public async getUserByUsername(username: string): Promise<IAuthDocument> {
+	public async getUserByUsernameOrEmail(username: string): Promise<IAuthDocument> {
 		const re = /^(([^<>()[\]\\.,;:\s@"]+(\.[^<>()[\]\\.,;:\s@"]+)*)|(".+"))@((([a-zA-Z\-0-9])+\.+[a-zA-Z]{2,}))$/
 		const ok = re.test(username)
 

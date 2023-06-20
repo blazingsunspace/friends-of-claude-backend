@@ -78,7 +78,7 @@ export interface IAuthDocument extends Document {
 
 	lastTimeLogged: Date
 	isUploaded: object
-
+	acceptTermsAndConditions: boolean
 	approvedByAdmin: boolean
 
 	setPassword: boolean
@@ -99,21 +99,23 @@ export interface IAuthDocument extends Document {
 }
 
 export interface ISignUpData {
-	_id: ObjectId
+	_id: ObjectId | string
 	uId: string
 	email: string
 	username: string
 	password: string
 	avatarColor: string
+	avatarImage?: string
 	nottifyMeIfUsedInDocumentary: boolean
 	listMeInDirectory: boolean
 	listMyTestemonials: boolean
 	imStatus: boolean
-	accountActivationToken: string
-	accountActivationExpires: number
+	accountActivationToken?: string
+	accountActivationExpires?: number
 	approvedByAdmin?: boolean
 	setPassword?: boolean
-	activatedByEmail?: boolean
+	activatedByEmail?: boolean,
+	acceptTermsAndConditions?:boolean
 }
 
 export interface IAuthJob {

@@ -14,7 +14,7 @@ export class SignIn {
 	public async read(req: Request, res: Response): Promise<void> {
 		const { password, username } = req.body
 
-		const existingUser: IAuthDocument = await authService.getUserByUsername(username)
+		const existingUser: IAuthDocument = await authService.getUserByUsernameOrEmail(username)
 
 		if (!existingUser) {
 			throw new BadRequestError('Invalid credentials1')

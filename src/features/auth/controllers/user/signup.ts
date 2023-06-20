@@ -117,7 +117,7 @@ export class SignUp {
 			}
 		}
 
-		const checkIfUserExist: IAuthDocument = await authService.getUserByUsername(username)
+		const checkIfUserExist: IAuthDocument = await authService.getUserByUsernameOrEmail(username)
 
 		if (checkIfUserExist) {
 			throw new NotAcceptableError(Helpers.getPoTranslate(language, 'SIGN_UP_USER_ALREADY_EXIST'))
