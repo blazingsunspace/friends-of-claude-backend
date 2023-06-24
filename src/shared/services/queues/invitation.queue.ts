@@ -1,5 +1,5 @@
 import { IInvitationsDocument } from '@invitations/interfaces/invitations.interface'
-import { BaseQueue } from '@services/queues/base.queue'
+import {BaseQueue} from '@services/queues/base.queue'
 
 import { addInvitationToDBWorker } from '@workers/invitation.worker'
 

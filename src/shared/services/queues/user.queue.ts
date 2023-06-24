@@ -1,4 +1,4 @@
-import { BaseQueue } from '@services/queues/base.queue'
+import {BaseQueue} from '@services/queues/base.queue'
 import { IUserDocument } from '@user/interfaces/user.interface'
 import { addUserToDBWorker } from '@workers/user.worker'
 

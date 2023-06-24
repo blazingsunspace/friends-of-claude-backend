@@ -17,7 +17,7 @@ export class AuthMiddleware {
 			if (payload) {
 				const existingUser: AuthPayload = await authService.getAuthUserById2(`${payload._id}`)
 
-				if (!(existingUser.role == config.CONSTANTS.userRoles.superAdmin || existingUser.role == config.CONSTANTS.userRoles.admin)) {
+				if (!(existingUser?.role == config.CONSTANTS.userRoles.superAdmin || existingUser?.role == config.CONSTANTS.userRoles.admin)) {
 					throw new NotAuthorizedError(`This route can not be used by logged user ${req.url}`)
 				}
 			}
@@ -43,7 +43,7 @@ export class AuthMiddleware {
 			}
 		} catch (error) {
 			log.error(error)
-			/* throw new NotAuthorizedError(`Token is invalid. Please login again2 :  ${error}`) */
+			throw new NotAuthorizedError(`Token is invalid. Please login again2 :  ${error}`)
 		}
 
 		next()

@@ -62,6 +62,9 @@
 			"@workers/*": [
 				"src/shared/workers/*"
 			],
+			"@mocks/*": [
+				"src/mocks/*"
+			],
 			"@src/*": [
 				"src/*"
 			],

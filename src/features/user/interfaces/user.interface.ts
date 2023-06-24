@@ -69,6 +69,12 @@ export interface IAccountActivatedParams {
 	ipaddress: string
 	date: string
 }
+export interface IAccountCreatedParams {
+	username: string
+	email: string
+	ipaddress: string
+	date: string
+}
 
 export interface INotificationSettings {
 	messages: boolean

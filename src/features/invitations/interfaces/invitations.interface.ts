@@ -21,7 +21,8 @@ export interface IInvitationUpdate {
 }
 
 export interface IUpdateInvitationUpdateWhere {
-	email: string
+	email?: string
+	invitationToken?: string
 }
 export interface IUpdateInvitationUpdateWhat {
 	authId?: string | ObjectId

@@ -13,30 +13,34 @@ const BASE_PATH = '/api/v1'
 export let serverAdapter: ExpressAdapter
 // eslint-disable-next-line prefer-const
 serverAdapter = new ExpressAdapter()
-serverAdapter.setBasePath('/admin/queues')
+serverAdapter.setBasePath('/admin/')
 
 export class ApplicationRoutes {
+
 	app: Application
+
 	constructor(app: Application) {
 		this.app = app
 		this.routes()
 	}
 
 	protected routes() {
+
+		//bull mq dashboard route
 		this.app.use('/queues', serverAdapter.getRouter())
 
+		// auth routes
 		this.app.use(BASE_PATH, authRoutes.routes())
 		this.app.use(BASE_PATH, authRoutes.signOutRoute())
 
-		//authenticated routes
+		//authenticated user routes
+		this.app.use(BASE_PATH, authMiddleware.verifyUser, currentUserRoutes.routes())
 
+		//admin routes
+		this.app.use(BASE_PATH, authMiddleware.verifyUser, adminRoutes.routes())
 		this.app.use(BASE_PATH, authMiddleware.verifyUser, invitationRoutes.routes())
 
-		this.app.use(BASE_PATH, authMiddleware.verifyUser, currentUserRoutes.routes())
-		this.app.use(BASE_PATH, authMiddleware.verifyUser, adminRoutes.routes())
-
 		//super admin routes
-
 		this.app.use(BASE_PATH, authMiddleware.verifyUser, superAdminRoutes.routes())
 	}
 }

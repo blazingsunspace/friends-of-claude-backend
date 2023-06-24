@@ -7,11 +7,11 @@ import { ObjectId } from 'mongodb'
 import { config } from '@src/config'
 import { BadRequestError } from '@globals/helpers/error-handler'
 
-import EmailQueue from '@services/queues/email.queue'
+import { EmailQueue, InvitationQueue } from '@services/queues/base.queue'
 
 import { IInviteUserParams } from '@user/interfaces/user.interface'
 
-import InvitationQueue from '@services/queues/invitation.queue'
+
 import { IInvitationsCreate, IInvitationsDocument } from '@invitations/interfaces/invitations.interface'
 import { createRandomCharacters } from '@auth/controllers/user/helpers/create-random-characters'
 import { emailSchema } from '@auth/schemes/password'
@@ -61,7 +61,10 @@ export class InviteUser {
 			res.status(HTTP_STATUS.OK).json({
 				message: 'potential user successfully invited',
 				success: true,
-				info: `potential user invited: ${email}`
+				info: `potential user invited: ${email}`,
+				data: config.NODE_ENV === 'development' ? {
+					invitationToken: randomCharacters,
+				} : ''
 			})
 		} catch (error) {
 			log.error('user invitation failed')
