@@ -13,7 +13,7 @@ const BASE_PATH = '/api/v1'
 export let serverAdapter: ExpressAdapter
 // eslint-disable-next-line prefer-const
 serverAdapter = new ExpressAdapter()
-serverAdapter.setBasePath('/admin/queues')
+serverAdapter.setBasePath('/admin/')
 
 export class ApplicationRoutes {
 

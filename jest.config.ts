@@ -1,6 +1,7 @@
 import type { Config } from '@jest/types'
 
 const config: Config.InitialOptions = {
+
 	preset: 'ts-jest',
 	testEnvironment: 'node',
 	verbose: true,
@@ -20,7 +21,7 @@ const config: Config.InitialOptions = {
 			statements: 1
 		}
 	},
-	coverageReporters: ['text-summary', 'lcov'],
+	coverageReporters: ['text-summary', 'lcov','clover', 'json', ['text', { skipFull: true }]],
 	moduleNameMapper: {
 		'@i18n/(.*)': [
 			'<rootDir>/i18n/$1'

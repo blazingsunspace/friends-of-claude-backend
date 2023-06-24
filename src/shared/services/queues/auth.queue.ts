@@ -1,5 +1,5 @@
 import { IAuthDocument } from '@auth/interfaces/auth.interface'
-import { BaseQueue } from '@services/queues/base.queue'
+import {BaseQueue} from '@services/queues/base.queue'
 import { addAuthUserToDBWorker } from '@workers/auth.worker'
 
 export default class AuthQueue extends BaseQueue {

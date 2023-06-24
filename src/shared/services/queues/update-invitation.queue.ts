@@ -1,5 +1,5 @@
 import { IInvitationUpdate } from '@invitations/interfaces/invitations.interface'
-import { BaseQueue } from '@services/queues/base.queue'
+import {BaseQueue} from '@services/queues/base.queue'
 
 import { updateInvitationToDBWorker } from '@workers/update-invitation.worker'
 

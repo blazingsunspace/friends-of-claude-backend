@@ -9,10 +9,10 @@ import { IAuthDocument, IAuthUpdate } from '@auth/interfaces/auth.interface'
 
 import { forgotPasswordTemplate } from '@services/emails/templates/forgot-password/forgot-password-template'
 
-import EmailQueue from '@services/queues/email.queue'
+import { EmailQueue, UpdateAuthQueue } from '@services/queues/base.queue'
 
 import { setNewPassword } from '@auth/controllers/user/helpers/set-new-password'
-import UpdateAuthQueue from '@services/queues/update-auth'
+
 import { emailSchema, passwordSchema } from '@auth/schemes/password'
 import { joiValidation } from '@globals/decorators/joi-validation.decorators'
 import { createRandomCharacters } from '@auth/controllers/user/helpers/create-random-characters'

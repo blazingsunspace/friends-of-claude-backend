@@ -1,5 +1,5 @@
 import { IAuthUpdate } from '@auth/interfaces/auth.interface'
-import { BaseQueue } from '@services/queues/base.queue'
+import {BaseQueue} from '@services/queues/base.queue'
 import { updateAuthUserToDBWorker } from '@workers/update-auth.worker'
 
 export default class UpdateAuthQueue extends BaseQueue {

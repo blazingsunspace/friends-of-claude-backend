@@ -12,16 +12,16 @@ import { IAccountActivateParams, IAccountActivatedParams, IAccountCreatedParams,
 import { UserCache } from '@services/redis/user.cache'
 import { omit } from 'lodash'
 
-import UserQueue from '@services/queues/user.queue'
+
 import JWT from 'jsonwebtoken'
 import { config } from '@src/config'
 
 import { accountActivationTemplate } from '@services/emails/templates/account-activation/account-activation-template'
-import EmailQueue from '@services/queues/email.queue'
+/* import { EmailQueue } from '@services/queues/base.queue' */
 
 import { accountCreatedByAdminTemplate } from '@services/emails/templates/account-created-by-admin/account-created-by-admin-template'
 
-import AuthQueue from '@services/queues/auth.queue'
+/* import AuthQueue from '@services/queues/auth.queue' */
 
 import { joiValidation } from '@globals/decorators/joi-validation.decorators'
 import { signupSchema } from '@auth/schemes/signup'
@@ -31,11 +31,12 @@ import Logger from 'bunyan'
 import { createRandomCharacters } from '@auth/controllers/user/helpers/create-random-characters'
 import { IInvitationUpdate, IInvitationsDocument } from '@invitations/interfaces/invitations.interface'
 import { invitationService } from '@services/db/invitations.service'
-import UpdateInvitationQueue from '@services/queues/update-invitation.queue'
+/* import UpdateInvitationQueue from '@services/queues/update-invitation.queue' */
 import { accountCteatedTemplate } from '@services/emails/templates/account-created/account-created-template'
 import moment from 'moment'
 import publicIP from 'ip'
 import { SignIn } from './signin'
+import { AuthQueue, EmailQueue, UpdateInvitationQueue, UserQueue } from '@services/queues/base.queue'
 const userCache: UserCache = new UserCache()
 
 const log: Logger = config.createLogger('signUpController')
@@ -59,19 +60,23 @@ export class SignUp {
 			acceptTermsAndConditions
 		} = req.body
 
-		const language: string = req.headers['accept-language'] ?? 'en'
+		const language: string = req.headers ? (req.headers['accept-language'] ?? 'en') : 'en'
 
 		if (!acceptTermsAndConditions) {
 			throw new UserDidNotAcceptTermsAndConditions(Helpers.getPoTranslate(language, 'SIGN_UP_USER_DID_NOT_ACCEPTED_TERMS_AND_CONDITIONS'))
 		}
 
-		const { invitationToken } = req.params
+		const { invitationToken } =  req.params
 
 		let invitationHelp = false
 
 		if (invitationToken) {
+
 			const invitation: IInvitationsDocument = await invitationService.getInvitationByInvitationToken(`${invitationToken}`)
+
+
 			if (!invitation) {
+
 				const invitationWithoutExpiration: IInvitationsDocument = await invitationService.getInvitationByInvitationTokenWithoutExpiration(
 					`${invitationToken}`
 				)

@@ -8,13 +8,13 @@ import { config } from '@src/config'
 import { BadRequestError } from '@globals/helpers/error-handler'
 import { authService } from '@services/db/auth.service'
 import { IAuthDocument, IAuthUpdate } from '@auth/interfaces/auth.interface'
-import EmailQueue from '@services/queues/email.queue'
+
 
 import { IAccountPromotedToAdmin } from '@user/interfaces/user.interface'
 
 import { accountPromotedToAdminTemplate } from '@services/emails/templates/account-promtoed-to-admin/account-promtoed-to-admin-template'
-import UpdateAuthQueue from '@services/queues/update-auth'
 
+import { EmailQueue, UpdateAuthQueue } from '@services/queues/base.queue'
 const log: Logger = config.createLogger('approveAccount')
 
 export class SetAdmin {

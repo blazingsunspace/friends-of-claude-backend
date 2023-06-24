@@ -10,11 +10,28 @@ import { IEmailJob, IUserDocument } from '@user/interfaces/user.interface'
 import { IAuthDocument, IAuthUpdate } from '@auth/interfaces/auth.interface'
 import { IInvitationUpdate, IInvitationsDocument } from '@invitations/interfaces/invitations.interface'
 
+
+import { addEmailToDBWorker } from '@workers/email.worker'
+import { addAuthUserToDBWorker } from '@workers/auth.worker'
+import { addUserToDBWorker } from '@workers/user.worker'
+import { updateInvitationToDBWorker } from '@workers/update-invitation.worker'
+import { updateAuthUserToDBWorker } from '@workers/update-auth.worker'
+import { addInvitationToDBWorker } from '@workers/invitation.worker'
+
+// retrieve the index of the `--myVar` flag
+const myVarIndex = process.argv.indexOf('--username')
+
+// get the value of `myVar` from the next argument in the array
+const myVar = process.argv[myVarIndex + 1]
+
+
 const bullAdapters: BullMQAdapter[] = []
 
-export abstract class BaseQueue {
+class BaseQueue  {
 	queue: Queue
+
 	log: Logger
+
 
 	DEFAULT_REMOVE_CONFIG = {
 		removeOnComplete: {
@@ -33,6 +50,7 @@ export abstract class BaseQueue {
 	}
 
 	constructor(queueName: string) {
+
 		this.queue = new Queue(queueName, this.redisOptions)
 
 		bullAdapters.push(new BullMQAdapter(this.queue))
@@ -65,6 +83,7 @@ export abstract class BaseQueue {
 		queueEvents.on('failed', ({ jobId, failedReason }) => {
 			console.info(`${jobId} has failed with reason ${failedReason}`)
 		})
+
 	}
 
 	protected async addJobToQueue<T>(
@@ -74,3 +93,92 @@ export abstract class BaseQueue {
 		return this.queue.add(name, data, this.DEFAULT_REMOVE_CONFIG)
 	}
 }
+
+
+
+class EmailQueue extends BaseQueue {
+	constructor(jobName: string, data: IEmailJob) {
+		super(jobName)
+		this.addEmailJob(jobName, data)
+	}
+
+	public async addEmailJob(jobName: string, data: IEmailJob): Promise<void> {
+		await this.addJobToQueue(jobName, data)
+
+		addEmailToDBWorker(jobName)
+	}
+}
+
+
+class AuthQueue extends BaseQueue {
+	constructor(jobName: string, data: IAuthDocument) {
+		super(jobName)
+		this.addAuthUserJob(jobName, data)
+	}
+
+	public async addAuthUserJob(jobName: string, data: IAuthDocument): Promise<void> {
+		await this.addJobToQueue(jobName, data)
+
+		addAuthUserToDBWorker(jobName)
+	}
+}
+
+
+
+class UserQueue extends BaseQueue {
+	constructor(jobName: string, data: IUserDocument) {
+		super(jobName)
+		this.addUserJob(jobName, data)
+	}
+
+	public async addUserJob(jobName: string, data: IUserDocument): Promise<void> {
+		await this.addJobToQueue(jobName, data)
+
+		addUserToDBWorker(jobName)
+	}
+}
+
+class UpdateInvitationQueue extends BaseQueue {
+	constructor(jobName: string, data: IInvitationUpdate) {
+		super(jobName)
+		this.updateInvitationToDB(jobName, data)
+	}
+
+	public async updateInvitationToDB(jobName: string, data: IInvitationUpdate): Promise<void> {
+		await this.addJobToQueue(jobName, data)
+
+		updateInvitationToDBWorker(jobName)
+	}
+}
+
+
+
+
+class UpdateAuthQueue extends BaseQueue {
+	constructor(jobName: string, data: IAuthUpdate) {
+		super(jobName)
+		this.updateAuthUserJob(jobName, data)
+	}
+
+	public async updateAuthUserJob(jobName: string, data: IAuthUpdate): Promise<void> {
+		await this.addJobToQueue(jobName, data)
+
+		updateAuthUserToDBWorker(jobName)
+	}
+}
+
+
+class InvitationQueue extends BaseQueue {
+	constructor(jobName: string, data: IInvitationsDocument) {
+		super(jobName)
+		this.addInvitationToDB(jobName, data)
+	}
+
+	public async addInvitationToDB(jobName: string, data: IInvitationsDocument): Promise<void> {
+		await this.addJobToQueue(jobName, data)
+
+		addInvitationToDBWorker(jobName)
+	}
+}
+
+export { BaseQueue, EmailQueue, AuthQueue, UserQueue, UpdateInvitationQueue, UpdateAuthQueue, InvitationQueue }

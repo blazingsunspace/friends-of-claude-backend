@@ -9,12 +9,11 @@ import { authService } from '@services/db/auth.service'
 import { BadRequestError } from '@globals/helpers/error-handler'
 import { IAuthDocument, IAuthUpdate, IUpdateAuthActivationUpdateWhat } from '@auth/interfaces/auth.interface'
 
-import EmailQueue from '@services/queues/email.queue'
 import { IAccountActivateParams, IAccountActivatedParams } from '@user/interfaces/user.interface'
 
 import { accountActivatedTemplate } from '@services/emails/templates/account-activated/account-activated-template'
+import { EmailQueue, UpdateAuthQueue } from '@services/queues/base.queue'
 
-import UpdateAuthQueue from '@services/queues/update-auth'
 import { config } from '@src/config'
 
 import { resentAccountActivationWithPassword } from '@services/emails/templates/resend-account-activation-with-password/resend-account-activation-with-password-template'

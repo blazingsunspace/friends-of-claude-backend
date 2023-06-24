@@ -5,16 +5,18 @@ import { Response } from 'express'
 export const authMockRequest = (sessionData: IJWT, body: IAuthMock, currentUser?: ISignUpData | null, params?: any) => ({
 	sessionData: sessionData,
 	body,
-	params,
-	currentUser
+	currentUser,
+	params
 })
-const consoleWarnMock = jest.spyOn(console, 'warn').mockImplementation(() => { });
+
+jest.spyOn(console, 'warn').mockImplementation(() => { });
+
 export const authMockResponse = (): Response => {
 	const res: Response = {} as Response
 	res.status = jest.fn().mockReturnValue(res)
 	res.json = jest.fn().mockReturnValue(res)
-	console.warn = jest.fn()
-	expect(console.warn).toHaveBeenCalled()
+
+
 	return res
 }
 export interface IJWT {
