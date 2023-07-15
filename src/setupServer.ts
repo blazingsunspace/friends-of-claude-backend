@@ -7,7 +7,7 @@ import hpp from 'hpp'
 import compression from 'compression'
 import cookieSession from 'cookie-session'
 import HTTP_STATUS from 'http-status-codes'
-
+import http, { request } from 'http'
 import { Server } from 'socket.io'
 import { createClient } from 'redis'
 import { createAdapter } from '@socket.io/redis-adapter'
@@ -27,11 +27,11 @@ const SERVER_PORT = config.SERVER_PORT
 const log: Logger = config.createLogger('server')
 import bodyParser from 'body-parser'
 
-const options = {
+/* const options = {
 	key: readFileSync(path.join(__dirname + './../host.key')),
 	cert: readFileSync(path.join(__dirname + './../host.cert')),
 	allowHTTP1: true
-}
+} */
 
 export class FriendsOfClaudeServer {
 	private app: Application
@@ -100,7 +100,7 @@ export class FriendsOfClaudeServer {
 
 	private async startServer(app: Application): Promise<void> {
 		try {
-			const server: spdy.server.Server = spdy.createServer(options, app)
+			const server: http.Server = new http.Server(app)
 			const socketIO: Server = await this.createSocketIO(server)
 			this.startHttpServer(server)
 			this.socketIOConnections(socketIO)
@@ -109,7 +109,7 @@ export class FriendsOfClaudeServer {
 		}
 	}
 
-	private async createSocketIO(httpServer: spdy.server.Server): Promise<Server> {
+	private async createSocketIO(httpServer: http.Server): Promise<Server> {
 		const io: Server = new Server(httpServer, {
 			cors: {
 				origin: config.CLIENT_URL,
@@ -123,7 +123,7 @@ export class FriendsOfClaudeServer {
 		return io
 	}
 
-	private startHttpServer(httpServer: spdy.server.Server): void {
+	private startHttpServer(httpServer: http.Server): void {
 		log.info(`Server has started with process ${process.pid}`)
 		httpServer.listen(SERVER_PORT, function () {
 			log.info(`Server running on port ${SERVER_PORT}`)
